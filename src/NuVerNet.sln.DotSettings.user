@@ -1,0 +1,9 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/Environment/InlayHints/GeneralInlayHintsOptions/EnableInlayHints/@EntryValue">False</s:Boolean>
+	<s:String x:Key="/Default/CodeInspection/PencilsConfiguration/ActualSeverity/@EntryValue">WARNING</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=4f7b0f63_002D0d8e_002D4ba5_002Db81b_002D4de9bf0b58b0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="There is a .NET projects, When dependency logic works, Then null should be returned successfully" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::B7CD8E94-648F-4998-B8A8-AF73B434428E::net8.0::NuVerNet.Test.DependencyTests.DependencyLogicWorksOnOneProjectSuccessfully&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B7CD8E94-648F-4998-B8A8-AF73B434428E::net8.0::NuVerNet.Test.DependencyTests.DependencyLogicWorksOnTwoDependentProjectsSuccessfully&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

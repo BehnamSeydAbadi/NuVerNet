@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVerNet", "NuVerNet\NuVerNet.csproj", "{D4E1A9A1-B187-41E4-868E-83FCEFFB25D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVerNet.Test", "NuVerNet.Test\NuVerNet.Test.csproj", "{B7CD8E94-648F-4998-B8A8-AF73B434428E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D4E1A9A1-B187-41E4-868E-83FCEFFB25D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E1A9A1-B187-41E4-868E-83FCEFFB25D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E1A9A1-B187-41E4-868E-83FCEFFB25D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E1A9A1-B187-41E4-868E-83FCEFFB25D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7CD8E94-648F-4998-B8A8-AF73B434428E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7CD8E94-648F-4998-B8A8-AF73B434428E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7CD8E94-648F-4998-B8A8-AF73B434428E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7CD8E94-648F-4998-B8A8-AF73B434428E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

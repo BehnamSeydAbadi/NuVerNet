@@ -6,33 +6,46 @@ namespace NuVerNet.DependencyResolver;
 
 public class CsprojDependencyResolver
 {
-    public async Task<ProjectModel[]> GetDependentProjectsAsync(string csprojPath, string solutionPath = "")
+    public async Task<ProjectModel> GetDependentProjectsAsync(string csprojPath, string solutionPath = "")
     {
-        var csprojContent = await GetCsprojContentAsync(csprojPath);
+        var projectModel = await GetProjectModelAsync(csprojPath);
 
-        var projectReferenceElements = XDocument.Load(new StringReader(csprojContent)).GetProjectReferenceElements();
+        // var projectReferenceElements = xDocument.GetProjectReferenceElements();
+        //
+        // var usedInProjectModels = new List<ProjectModel>();
+        //
+        // var csprojPathsOfSolution = GetCsprojContentsOfSolutionAsync(solutionPath);
+        //
+        // foreach (var projectReferenceElement in projectReferenceElements)
+        // {
+        //     var projectName = projectReferenceElement.GetProjectName();
+        //     var relativeProjectPath = projectReferenceElement.GetRelativeProjectPath();
+        //
+        //     usedInProjectModels.Add(
+        //         key: projectName,
+        //         new ProjectModel
+        //         {
+        //             Name = projectName,
+        //             Path = relativeProjectPath,
+        //             UsedIn = []
+        //         }
+        //     );
+        // }
 
-        var csprojPathsOfSolution = GetCsprojContentsOfSolutionAsync(solutionPath);
+        return projectModel;
+    }
 
-        var projectModelsIndexedByProjectName = new Dictionary<string, ProjectModel>();
+    private async Task<ProjectModel> GetProjectModelAsync(string csprojPath)
+    {
+        var csprojReader = CsprojReader.New().WithCsprojPath(csprojPath);
+        await csprojReader.LoadAsync();
 
-        foreach (var projectReferenceElement in projectReferenceElements)
+        return new ProjectModel
         {
-            var projectName = projectReferenceElement.GetProjectName();
-            var relativeProjectPath = projectReferenceElement.GetRelativeProjectPath();
-
-            projectModelsIndexedByProjectName.Add(
-                key: projectName,
-                new ProjectModel
-                {
-                    ProjectName = projectName,
-                    ProjectPath = relativeProjectPath,
-                    UsedIn = []
-                }
-            );
-        }
-
-        return projectModelsIndexedByProjectName.Values.ToArray();
+            Name = csprojReader.GetProjectName(),
+            Path = csprojPath,
+            Version = csprojReader.GetProjectVersion(),
+        };
     }
 
 

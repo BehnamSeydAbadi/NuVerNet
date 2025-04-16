@@ -89,15 +89,8 @@ public class CsprojDependencyResolverTests
         "There are multiple .NET projects which are dependent to each other hierarchically, When dependency logic works, Then the dependent project should be returned successfully")]
     public async Task DependencyLogicWorksOnThreeDependentProjectsSuccessfully()
     {
-        var csprojContent = @"
+        var projectA_CsprojContent = @"
         <Project Sdk=""Microsoft.NET.Sdk"">
-        
-            <PropertyGroup>
-                <Version>0.0.2</Version>
-                <PackageId>ERPCore.Utility.Domain</PackageId>
-                <PackageTags>erp;utility;domain</PackageTags>
-                <PackageOutputPath>../../localPackages/ERPCore.Utility.Domain</PackageOutputPath>
-            </PropertyGroup>
         
             <ItemGroup>
                 <None Include=""README.md"" Pack=""true"" PackagePath=""""/>
@@ -105,7 +98,6 @@ public class CsprojDependencyResolverTests
         
             <ItemGroup>
                 <PackageReference Include=""Mapster""/>
-                <PackageReference Include=""Quantum.Domain""/>
             </ItemGroup>
         
             <ItemGroup>
@@ -121,53 +113,28 @@ public class CsprojDependencyResolverTests
         </Project>
         ";
 
-        string[] csprojPaths =
-        [
-            @"
+        var projectB_CsprojContent = @"
             <Project Sdk=""Microsoft.NET.Sdk"">
-            
-                <PropertyGroup>
-                    <Version>0.0.2</Version>
-                    <PackageId>ERPCore.Utility.ApplicationService</PackageId>
-                    <PackageTags>erp;utility;application;service;applicationservice</PackageTags>
-                    <PackageOutputPath>../../localPackages/ERPCore.Utility.ApplicationService</PackageOutputPath>
-                </PropertyGroup>
             
                 <ItemGroup>
                     <None Include=""README.md"" Pack=""true"" PackagePath=""""/>
                 </ItemGroup>
             
                 <ItemGroup>
-                    <ProjectReference Include=""..\ERPCore.Utility.Domain\ERPCore.Utility.Domain.csproj""/>
+                    <ProjectReference Include=""..\ProjectA\ProjectA.csproj""/>
                 </ItemGroup>
             
-                <ItemGroup>
-                    <PackageReference Include=""Quantum.Dispatcher""/>
-                </ItemGroup>
-            
-                <Target Name=""CopyDllAfterBuild"" AfterTargets=""Build"">
-                    <Copy
-                            SourceFiles=""$(TargetDir)$(AssemblyName).dll""
-                            DestinationFolder=""..\..\..\..\Build""/>
-                </Target>
-            
-            </Project>",
-            @"
+            </Project>";
+
+        var proejctC_CsprojContent = @"
             <Project Sdk=""Microsoft.NET.Sdk"">
-            
-                <PropertyGroup>
-                    <Version>0.0.3</Version>
-                    <PackageId>ERPCore.Utility.Infrastructure</PackageId>
-                    <PackageTags>erp;utility;infrastructure</PackageTags>
-                    <PackageOutputPath>../../localPackages/ERPCore.Utility.Infrastructure</PackageOutputPath>
-                </PropertyGroup>
             
                 <ItemGroup>
                     <None Include=""README.md"" Pack=""true"" PackagePath=""""/>
                 </ItemGroup>
                 
                 <ItemGroup>
-                    <ProjectReference Include=""..\ERPCore.Utility.ApplicationService\ERPCore.Utility.ApplicationService.csproj""/>
+                    <ProjectReference Include=""..\ProjectB\ProjectB.csproj""/>
                 </ItemGroup>
             
                 <Target Name=""CopyDllAfterBuild"" AfterTargets=""Build"">
@@ -176,18 +143,20 @@ public class CsprojDependencyResolverTests
                             DestinationFolder=""..\..\..\..\Build""/>
                 </Target>
             
-            </Project>"
-        ];
+            </Project>";
 
-        var dependency = StubCsprojDependencyResolver.New().WithCsprojContent(csprojContent).WithCsprojContentsOfSolution(csprojPaths);
+        var dependency = StubCsprojDependencyResolver.New()
+            .WithCsprojContent(projectA_CsprojContent)
+            .WithCsprojContentsOfSolution(projectB_CsprojContent, proejctC_CsprojContent);
 
-        var dependentProjects = await dependency.GetDependentProjectsAsync(csprojPath: string.Empty, solutionPath: string.Empty);
+        var dependentProject = await dependency.GetDependentProjectsAsync(csprojPath: string.Empty, solutionPath: string.Empty);
 
         dependentProjects.Length.Should().Be(3);
 
-        var utilityDomainProjectModel = dependentProjects.SingleOrDefault(dp => dp.ProjectName == "ERPCore.Utility.Domain");
+        var utilityDomainProjectModel = dependentProject.SingleOrDefault(dp => dp.ProjectName == "ERPCore.Utility.Domain");
         utilityDomainProjectModel.Should().NotBeNull();
-        utilityDomainProjectModel.ProjectPath.Should().Be(@"..\ERPCore.Utility.Domain\ERPCore.Utility.Domain.csproj");
-        //TODO: And so on        
+        utilityDomainProjectModel.ProjectName.Should().Be("ProjectA");
+        utilityDomainProjectModel.ProjectPath.Should().Be(@"..\ProjectA\ProjectA.csproj");
+        
     }
 }

@@ -19,7 +19,7 @@ public class StubCsprojDependencyResolver : CsprojDependencyResolver
         return this;
     }
 
-    public StubCsprojDependencyResolver WithCsprojContentsOfSolution(string[] csprojContents)
+    public StubCsprojDependencyResolver WithCsprojContentsOfSolution(params string[] csprojContents)
     {
         _csprojContents = csprojContents;
         return this;

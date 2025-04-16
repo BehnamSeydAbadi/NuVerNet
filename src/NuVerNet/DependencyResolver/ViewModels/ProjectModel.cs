@@ -2,7 +2,8 @@
 
 public class ProjectModel
 {
-    public required string ProjectName { get; set; }
-    public required string ProjectPath { get; set; }
-    public required ProjectModel[] UsedIn { get; set; } = [];
+    public required string Name { get; set; }
+    public required string Path { get; set; }
+    public required string? Version { get; set; }
+    public ProjectModel[] UsedIn { get; set; } = [];
 }

@@ -1,44 +1,60 @@
-﻿using System.Xml.Linq;
-using NuVerNet.DependencyResolver.Extensions;
+﻿using NuVerNet.DependencyResolver.SolutionReader;
 using NuVerNet.DependencyResolver.ViewModels;
 
 namespace NuVerNet.DependencyResolver;
 
 public class CsprojDependencyResolver
 {
-    public async Task<ProjectModel> GetDependentProjectsAsync(string csprojPath, string solutionPath = "")
+    public async Task<ProjectModel> GetDependentProjectsAsync(string csprojPath, string solutionPath)
     {
-        var projectModel = await GetProjectModelAsync(csprojPath);
+        var projectModel = GetProjectModel(csprojPath);
 
-        // var projectReferenceElements = xDocument.GetProjectReferenceElements();
-        //
-        // var usedInProjectModels = new List<ProjectModel>();
-        //
-        // var csprojPathsOfSolution = GetCsprojContentsOfSolutionAsync(solutionPath);
-        //
-        // foreach (var projectReferenceElement in projectReferenceElements)
-        // {
-        //     var projectName = projectReferenceElement.GetProjectName();
-        //     var relativeProjectPath = projectReferenceElement.GetRelativeProjectPath();
-        //
-        //     usedInProjectModels.Add(
-        //         key: projectName,
-        //         new ProjectModel
-        //         {
-        //             Name = projectName,
-        //             Path = relativeProjectPath,
-        //             UsedIn = []
-        //         }
-        //     );
-        // }
+        var allCsprojModels = await GetCsprojContentsOfSolutionAsync(solutionPath);
+
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        FindDependentProjectsRecursively(projectModel, allCsprojModels, visited);
 
         return projectModel;
     }
 
-    private async Task<ProjectModel> GetProjectModelAsync(string csprojPath)
+    private void FindDependentProjectsRecursively(
+        ProjectModel projectModel, CsprojModel[] allCsprojModels, HashSet<string> visited
+    )
     {
-        var csprojReader = CsprojReader.New().WithCsprojPath(csprojPath);
-        await csprojReader.LoadAsync();
+        if (visited.Contains(projectModel.Path)) return;
+
+        visited.Add(projectModel.Path);
+
+        foreach (var csprojModel in allCsprojModels)
+        {
+            var csprojReader = GetCsprojReader(csprojModel.Path);
+
+            if (csprojReader.HasProjectReference(projectModel.Name))
+            {
+                var usedInProjectModel = new ProjectModel
+                {
+                    Name = csprojReader.GetProjectName(),
+                    Path = csprojModel.Path,
+                    Version = csprojReader.GetProjectVersion()
+                };
+
+                projectModel.UsedIn.Add(usedInProjectModel);
+
+                FindDependentProjectsRecursively(usedInProjectModel, allCsprojModels, visited);
+            }
+        }
+    }
+
+    protected virtual CsprojReader.CsprojReader GetCsprojReader(string csprojPath)
+    {
+        return CsprojReader.CsprojReader.New().WithCsprojPath(csprojPath);
+    }
+
+    protected virtual ProjectModel GetProjectModel(string csprojPath)
+    {
+        var csprojReader = CsprojReader.CsprojReader.New().WithCsprojPath(csprojPath);
+        csprojReader.Load();
 
         return new ProjectModel
         {
@@ -48,18 +64,8 @@ public class CsprojDependencyResolver
         };
     }
 
-
-    protected virtual async Task<string> GetCsprojContentAsync(string csprojPath) => await File.ReadAllTextAsync(csprojPath);
-
-    protected virtual async Task<string[]> GetCsprojContentsOfSolutionAsync(string solutionPath)
+    protected virtual async Task<CsprojModel[]> GetCsprojContentsOfSolutionAsync(string solutionPath)
     {
-        var csprojPaths = Directory.GetFiles(solutionPath, "*.csproj", new EnumerationOptions
-        {
-            RecurseSubdirectories = true
-        });
-
-        return await Task.WhenAll(
-            csprojPaths.Select(p => File.ReadAllTextAsync(p))
-        );
+        return await SolutionReader.SolutionReader.New().WithSolutionPath(solutionPath).GetCsprojsAsync();
     }
 }

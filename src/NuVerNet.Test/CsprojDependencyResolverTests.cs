@@ -1,16 +1,45 @@
-﻿using System.Xml.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
+using NuVerNet.DependencyResolver.ViewModels;
+using NuVerNet.Test.Stubs;
+
+// ReSharper disable InconsistentNaming
 
 namespace NuVerNet.Test;
 
 public class CsprojDependencyResolverTests
 {
     [Fact(DisplayName =
-        "There is a .NET projects, When dependency logic works, Then null should be returned successfully")]
+        "There is a .NET projects, When dependency logic works, Then only the project it'self with no UsedIn projects should be returned successfully")]
     public async Task DependencyLogicWorksOnOneProjectSuccessfully()
     {
-        var csprojContent =
-            @"
+        var projectA_Name = "ProjectA";
+        var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
+        var projectA_Version = "0.0.1";
+
+        var dependency = StubCsprojDependencyResolver.New().WithProjectModel(new ProjectModel
+        {
+            Name = projectA_Name,
+            Path = projectA_Path,
+            Version = projectA_Version,
+        });
+
+        var projectModel = await dependency.GetDependentProjectsAsync(projectA_Path, solutionPath: string.Empty);
+
+        projectModel.Name.Should().Be(projectA_Name);
+        projectModel.Path.Should().Be(projectA_Path);
+        projectModel.Version.Should().Be(projectA_Version);
+        projectModel.UsedIn.Should().BeEmpty();
+    }
+
+    [Fact(DisplayName =
+        "There are two .NET projects which one of them is dependent to another one, When dependency logic works, Then the dependent project should be returned successfully")]
+    public async Task DependencyLogicWorksOnTwoDependentProjectsSuccessfully()
+    {
+        var projectA_Name = "ProjectA";
+        var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
+        var projectA_Version = "0.0.1";
+        var projectA_Content =
+            $@"
             <Project Sdk=""Microsoft.NET.Sdk.Worker"">
         
                 <PropertyGroup>
@@ -18,6 +47,7 @@ public class CsprojDependencyResolverTests
                     <Nullable>enable</Nullable>
                     <ImplicitUsings>enable</ImplicitUsings>
                     <UserSecretsId>dotnet-WindowsService-0001F3E8-FC7E-4AB5-9664-D579AB860F6A</UserSecretsId>
+                    <Version>{projectA_Version}<Version/>
                 </PropertyGroup>
             
                 <ItemGroup>
@@ -29,134 +59,206 @@ public class CsprojDependencyResolverTests
             </Project>
             ";
 
-        var dependency = StubCsprojDependencyResolver.New().WithCsprojContent(csprojContent);
 
-        var dependentProjects = await dependency.GetDependentProjectsAsync(csprojPath: string.Empty);
-
-        dependentProjects.Should().BeEmpty();
-    }
-
-    [Fact(DisplayName =
-        "There are two .NET projects which one of them is dependent to another one, When dependency logic works, Then the dependent project should be returned successfully")]
-    public async Task DependencyLogicWorksOnTwoDependentProjectsSuccessfully()
-    {
-        var dependentProjectName = "NuVerNet";
-        var relativeDependentProjectPath = $"..\\NuVerNet\\{dependentProjectName}.csproj";
-
-        var csprojContent =
-            @$"
-            <Project Sdk=""Microsoft.NET.Sdk"">
-            
+        var projectB_Name = "ProjectB";
+        var projectB_Path = $"..\\ProjectB\\{projectB_Name}.csproj";
+        var projectB_Version = "0.0.2";
+        var projectB_Content =
+            $@"
+            <Project Sdk=""Microsoft.NET.Sdk.Worker"">
+        
                 <PropertyGroup>
-                    <TargetFramework>net8.0</TargetFramework>
-                    <ImplicitUsings>enable</ImplicitUsings>
+                    <TargetFramework>net7.0</TargetFramework>
                     <Nullable>enable</Nullable>
-            
-                    <IsPackable>false</IsPackable>
-                    <IsTestProject>true</IsTestProject>
+                    <ImplicitUsings>enable</ImplicitUsings>
+                    <UserSecretsId>dotnet-WindowsService-0001F3E8-FC7E-4AB5-9664-D579AB860F6A</UserSecretsId>
+                    <Version>{projectB_Version}<Version/>
                 </PropertyGroup>
             
                 <ItemGroup>
-                    <PackageReference Include=""coverlet.collector"" Version=""6.0.0""/>
-                    <PackageReference Include=""FluentAssertions"" Version=""8.2.0"" />
-                    <PackageReference Include=""Microsoft.NET.Test.Sdk"" Version=""17.8.0""/>
-                    <PackageReference Include=""xunit"" Version=""2.5.3""/>
-                    <PackageReference Include=""xunit.runner.visualstudio"" Version=""2.5.3""/>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting"" Version=""7.0.1""/>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting.WindowsServices"" Version=""7.0.1"" />
+                    <PackageReference Include=""Microsoft.Extensions.Logging.EventLog"" Version=""8.0.0"" />
+                    <PackageReference Include=""Quantum.Logging"" Version=""0.0.7"" />
                 </ItemGroup>
-            
+
                 <ItemGroup>
-                    <Using Include=""Xunit""/>
+                  <ProjectReference Include=""{projectA_Path}"" />
                 </ItemGroup>
-            
-                <ItemGroup>
-                  <ProjectReference Include=""{relativeDependentProjectPath}"" />
-                </ItemGroup>
-            
             </Project>
             ";
 
-        var dependency = StubCsprojDependencyResolver.New().WithCsprojContent(csprojContent);
+        var dependency = StubCsprojDependencyResolver.New()
+            .WithProjectModel(new ProjectModel
+            {
+                Name = projectA_Name,
+                Path = projectA_Path,
+                Version = projectA_Version,
+            })
+            .WithCsprojContentsOfSolution(
+                new StubCsprojDependencyResolver.Csproj(projectA_Path, projectA_Content),
+                new StubCsprojDependencyResolver.Csproj(projectB_Path, projectB_Content)
+            )
+            .WithCsprojReaders(
+                StubCsprojReader.New()
+                    .WithProjectName(projectA_Name)
+                    .WithProjectPath(projectA_Path)
+                    .WithProjectVersion(projectA_Version),
+                StubCsprojReader.New()
+                    .WithProjectName(projectB_Name)
+                    .WithProjectPath(projectB_Path)
+                    .WithProjectVersion(projectB_Version)
+                    .WithProjectReferences(projectA_Name)
+            );
 
-        var dependentProjects = await dependency.GetDependentProjectsAsync(csprojPath: string.Empty);
 
-        dependentProjects.Should().NotBeEmpty();
-        dependentProjects[0].ProjectName.Should().Be(dependentProjectName);
-        dependentProjects[0].ProjectPath.Should().Be(relativeDependentProjectPath);
-        dependentProjects[0].UsedIn.Should().BeEmpty();
+        var projectModel = await dependency.GetDependentProjectsAsync(projectA_Path, solutionPath: string.Empty);
+
+        projectModel.Name.Should().Be(projectA_Name);
+        projectModel.Path.Should().Be(projectA_Path);
+        projectModel.Version.Should().Be(projectA_Version);
+        projectModel.UsedIn.Count.Should().Be(1);
+
+        projectModel.UsedIn[0].Name.Should().Be(projectB_Name);
+        projectModel.UsedIn[0].Path.Should().Be(projectB_Path);
+        projectModel.UsedIn[0].Version.Should().Be(projectB_Version);
+        projectModel.UsedIn[0].UsedIn.Should().BeEmpty();
     }
 
     [Fact(DisplayName =
         "There are multiple .NET projects which are dependent to each other hierarchically, When dependency logic works, Then the dependent project should be returned successfully")]
     public async Task DependencyLogicWorksOnThreeDependentProjectsSuccessfully()
     {
-        var projectA_CsprojContent = @"
-        <Project Sdk=""Microsoft.NET.Sdk"">
+        var projectA_Name = "ProjectA";
+        var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
+        var projectA_Version = "0.0.1";
+        var projectA_Content =
+            $@"
+            <Project Sdk=""Microsoft.NET.Sdk.Worker"">
         
-            <ItemGroup>
-                <None Include=""README.md"" Pack=""true"" PackagePath=""""/>
-            </ItemGroup>
-        
-            <ItemGroup>
-                <PackageReference Include=""Mapster""/>
-            </ItemGroup>
-        
-            <ItemGroup>
-                <Content Include=""Utility.ErrorMessage.json"" CopyToPublishDirectory=""PreserveNewest"" CopyToOutputDirectory=""PreserveNewest""/>
-            </ItemGroup>
-        
-            <Target Name=""CopyDllAfterBuild"" AfterTargets=""Build"">
-                <Copy
-                        SourceFiles=""$(TargetDir)$(AssemblyName).dll""
-                        DestinationFolder=""..\..\..\..\Build""/>
-            </Target>
-        
-        </Project>
-        ";
+                <PropertyGroup>
+                    <TargetFramework>net7.0</TargetFramework>
+                    <Nullable>enable</Nullable>
+                    <ImplicitUsings>enable</ImplicitUsings>
+                    <UserSecretsId>dotnet-WindowsService-0001F3E8-FC7E-4AB5-9664-D579AB860F6A</UserSecretsId>
+                    <Version>{projectA_Version}<Version/>
+                </PropertyGroup>
+            
+                <ItemGroup>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting"" Version=""7.0.1""/>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting.WindowsServices"" Version=""7.0.1"" />
+                    <PackageReference Include=""Microsoft.Extensions.Logging.EventLog"" Version=""8.0.0"" />
+                    <PackageReference Include=""Quantum.Logging"" Version=""0.0.7"" />
+                </ItemGroup>
+            </Project>
+            ";
 
-        var projectB_CsprojContent = @"
-            <Project Sdk=""Microsoft.NET.Sdk"">
-            
-                <ItemGroup>
-                    <None Include=""README.md"" Pack=""true"" PackagePath=""""/>
-                </ItemGroup>
-            
-                <ItemGroup>
-                    <ProjectReference Include=""..\ProjectA\ProjectA.csproj""/>
-                </ItemGroup>
-            
-            </Project>";
 
-        var proejctC_CsprojContent = @"
-            <Project Sdk=""Microsoft.NET.Sdk"">
+        var projectB_Name = "ProjectB";
+        var projectB_Path = $"..\\ProjectB\\{projectB_Name}.csproj";
+        var projectB_Version = "0.0.2";
+        var projectB_Content =
+            $@"
+            <Project Sdk=""Microsoft.NET.Sdk.Worker"">
+        
+                <PropertyGroup>
+                    <TargetFramework>net7.0</TargetFramework>
+                    <Nullable>enable</Nullable>
+                    <ImplicitUsings>enable</ImplicitUsings>
+                    <UserSecretsId>dotnet-WindowsService-0001F3E8-FC7E-4AB5-9664-D579AB860F6A</UserSecretsId>
+                    <Version>{projectB_Version}<Version/>
+                </PropertyGroup>
             
                 <ItemGroup>
-                    <None Include=""README.md"" Pack=""true"" PackagePath=""""/>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting"" Version=""7.0.1""/>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting.WindowsServices"" Version=""7.0.1"" />
+                    <PackageReference Include=""Microsoft.Extensions.Logging.EventLog"" Version=""8.0.0"" />
+                    <PackageReference Include=""Quantum.Logging"" Version=""0.0.7"" />
                 </ItemGroup>
-                
+
                 <ItemGroup>
-                    <ProjectReference Include=""..\ProjectB\ProjectB.csproj""/>
+                  <ProjectReference Include=""{projectA_Path}"" />
                 </ItemGroup>
+            </Project>
+            ";
+
+
+        var projectC_Name = "ProjectC";
+        var projectC_Path = $"..\\ProjectC\\{projectC_Name}.csproj";
+        var projectC_Version = "0.0.3";
+        var projectC_Content =
+            $@"
+            <Project Sdk=""Microsoft.NET.Sdk.Worker"">
+        
+                <PropertyGroup>
+                    <TargetFramework>net7.0</TargetFramework>
+                    <Nullable>enable</Nullable>
+                    <ImplicitUsings>enable</ImplicitUsings>
+                    <UserSecretsId>dotnet-WindowsService-0001F3E8-FC7E-4AB5-9664-D579AB860F6A</UserSecretsId>
+                    <Version>{projectC_Version}<Version/>
+                </PropertyGroup>
             
-                <Target Name=""CopyDllAfterBuild"" AfterTargets=""Build"">
-                    <Copy
-                            SourceFiles=""$(TargetDir)$(AssemblyName).dll""
-                            DestinationFolder=""..\..\..\..\Build""/>
-                </Target>
-            
-            </Project>";
+                <ItemGroup>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting"" Version=""7.0.1""/>
+                    <PackageReference Include=""Microsoft.Extensions.Hosting.WindowsServices"" Version=""7.0.1"" />
+                    <PackageReference Include=""Microsoft.Extensions.Logging.EventLog"" Version=""8.0.0"" />
+                    <PackageReference Include=""Quantum.Logging"" Version=""0.0.7"" />
+                </ItemGroup>
+
+                <ItemGroup>
+                  <ProjectReference Include=""{projectB_Path}"" />
+                </ItemGroup>
+            </Project>
+            ";
 
         var dependency = StubCsprojDependencyResolver.New()
-            .WithCsprojContent(projectA_CsprojContent)
-            .WithCsprojContentsOfSolution(projectB_CsprojContent, proejctC_CsprojContent);
+            .WithProjectModel(new ProjectModel
+            {
+                Name = projectA_Name,
+                Path = projectA_Path,
+                Version = projectA_Version,
+            })
+            .WithCsprojContentsOfSolution(
+                new StubCsprojDependencyResolver.Csproj(projectA_Path, projectA_Content),
+                new StubCsprojDependencyResolver.Csproj(projectB_Path, projectB_Content),
+                new StubCsprojDependencyResolver.Csproj(projectC_Path, projectC_Content)
+            )
+            .WithCsprojReaders(
+                StubCsprojReader.New()
+                    .WithProjectName(projectA_Name)
+                    .WithProjectPath(projectA_Path)
+                    .WithProjectVersion(projectA_Version),
+                StubCsprojReader.New()
+                    .WithProjectName(projectB_Name)
+                    .WithProjectPath(projectB_Path)
+                    .WithProjectVersion(projectB_Version)
+                    .WithProjectReferences(projectA_Name),
+                StubCsprojReader.New()
+                    .WithProjectName(projectC_Name)
+                    .WithProjectPath(projectC_Path)
+                    .WithProjectVersion(projectC_Version)
+                    .WithProjectReferences(projectB_Name)
+            );
 
-        var dependentProject = await dependency.GetDependentProjectsAsync(csprojPath: string.Empty, solutionPath: string.Empty);
+        var projectA_projectModel = await dependency.GetDependentProjectsAsync(
+            projectA_Path, solutionPath: string.Empty
+        );
 
-        dependentProjects.Length.Should().Be(3);
+        projectA_projectModel.Name.Should().Be(projectA_Name);
+        projectA_projectModel.Path.Should().Be(projectA_Path);
+        projectA_projectModel.Version.Should().Be(projectA_Version);
+        projectA_projectModel.UsedIn.Count.Should().Be(1);
 
-        var utilityDomainProjectModel = dependentProject.SingleOrDefault(dp => dp.ProjectName == "ERPCore.Utility.Domain");
-        utilityDomainProjectModel.Should().NotBeNull();
-        utilityDomainProjectModel.ProjectName.Should().Be("ProjectA");
-        utilityDomainProjectModel.ProjectPath.Should().Be(@"..\ProjectA\ProjectA.csproj");
-        
+        var projectB_projectModel = projectA_projectModel.UsedIn[0];
+        projectB_projectModel.Name.Should().Be(projectB_Name);
+        projectB_projectModel.Path.Should().Be(projectB_Path);
+        projectB_projectModel.Version.Should().Be(projectB_Version);
+        projectB_projectModel.UsedIn.Count.Should().Be(1);
+
+        var projectC_projectModel = projectB_projectModel.UsedIn[0];
+        projectC_projectModel.Name.Should().Be(projectC_Name);
+        projectC_projectModel.Path.Should().Be(projectC_Path);
+        projectC_projectModel.Version.Should().Be(projectC_Version);
+        projectC_projectModel.UsedIn.Should().BeEmpty();
     }
 }

@@ -2,12 +2,20 @@
 
 public class Node<T> where T : class
 {
-    public Node(T @object, Node<T> child)
+    private List<Node<T>> _children = [];
+
+    public Node(T @object)
     {
         Object = @object;
-        Child = child;
     }
 
     public T Object { get; }
-    public Node<T> Child { get; }
+    public IReadOnlyList<Node<T>> Children => _children;
+
+    public Node<T> AddChild(T childObject)
+    {
+        var childNode = new Node<T>(childObject);
+        _children.Add(childNode);
+        return childNode;
+    }
 }

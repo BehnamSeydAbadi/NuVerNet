@@ -1,30 +1,31 @@
-﻿using NuVerNet.DependencyResolver.ViewModels;
+﻿namespace NuVerNet.TreeTraversal;
 
-namespace NuVerNet.TreeTraversal;
-
-public class Tree
+public class Tree<T> where T : class
 {
-    private ProjectModel _rootNode;
+    private Node<T>? _rootNode;
 
 
-    public static Tree New() => new();
+    public static Tree<T> New() => new();
 
-    public Tree WithRootNode(ProjectModel rootNode)
+    public Tree<T> WithRootNode(Node<T> rootNode)
     {
         _rootNode = rootNode;
         return this;
     }
 
-    public void TraverseDfs(Action<ProjectModel> action)
+    public void TraverseDfs(Action<T> action)
     {
+        if (_rootNode is null)
+            throw new InvalidOperationException("Root node is null");
+
         TraverseDfs(_rootNode, action);
     }
 
-    private void TraverseDfs(ProjectModel node, Action<ProjectModel> action)
+    private void TraverseDfs(Node<T> node, Action<T> action)
     {
-        action.Invoke(node);
+        action.Invoke(node.Object);
 
-        foreach (var childNode in node.UsedIn)
+        foreach (var childNode in node.Children)
         {
             TraverseDfs(childNode, action);
         }

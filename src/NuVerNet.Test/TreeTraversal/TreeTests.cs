@@ -10,14 +10,13 @@ namespace NuVerNet.Test.TreeTraversal
             "There is only one node, When the tree gets traversed, Then only the root node should be visited successfully")]
         public void TraverseTreeWithOnlyOneNodeSuccessfully()
         {
-            var tree = Tree.New();
-            var rootNode = new ProjectModel
+            var tree = Tree<ProjectModel>.New();
+            tree.WithRootNode(new Node<ProjectModel>(new ProjectModel
             {
                 Name = "Root",
                 Path = "Root.csproj",
                 Version = "1.0.0"
-            };
-            tree.WithRootNode(rootNode);
+            }));
 
             var visitedNodes = new List<string>();
 
@@ -28,33 +27,22 @@ namespace NuVerNet.Test.TreeTraversal
         }
 
         [Fact(DisplayName =
-            "When traversing a tree inclduing a root and two children nodes, Then all nodes should be visited successfully")]
+            "When traversing a tree inclduing a root and two children nodes, Then all nodes should be visited DFS order successfully")]
         public void TraverseTreeWithThreeNodesOneRootAndTwoChildrenSuccessfully()
         {
-            var tree = Tree.New();
-            var rootNode = new ProjectModel
-            {
-                Name = "Root",
-                Path = "Root.csproj",
-                Version = "1.0.0"
-            };
+            var tree = Tree<ProjectModel>.New();
 
-            var childA = new ProjectModel
-            {
-                Name = "ChildA",
-                Path = "ChildA.csproj",
-                Version = "1.0.0"
-            };
+            var rootNode = new Node<ProjectModel>(
+                new ProjectModel { Name = "Root", Path = "Root.csproj", Version = "1.0.0" }
+            );
 
-            var childB = new ProjectModel
-            {
-                Name = "ChildB",
-                Path = "ChildB.csproj",
-                Version = "1.0.0"
-            };
+            rootNode.AddChild(
+                new ProjectModel { Name = "ChildA", Path = "ChildA.csproj", Version = "1.0.0" }
+            );
 
-            rootNode.UsedIn.Add(childA);
-            rootNode.UsedIn.Add(childB);
+            rootNode.AddChild(
+                new ProjectModel { Name = "ChildB", Path = "ChildB.csproj", Version = "1.0.0" }
+            );
 
             tree.WithRootNode(rootNode);
 
@@ -68,119 +56,44 @@ namespace NuVerNet.Test.TreeTraversal
             visitedNodes[2].Should().Be("ChildB");
         }
 
-        // [Fact(DisplayName = "When traversing a multi-level tree, all nodes should be visited in DFS order")]
-        // public void TraverseDfs_MultiLevel_AllNodesVisitedInDfsOrder()
-        // {
-        //     // Arrange
-        //     var tree = Tree.Create();
-        //     var rootNode = new ProjectModel
-        //     {
-        //         Name = "Root",
-        //         Path = "Root.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     var childA = new ProjectModel
-        //     {
-        //         Name = "ChildA",
-        //         Path = "ChildA.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     var childB = new ProjectModel
-        //     {
-        //         Name = "ChildB",
-        //         Path = "ChildB.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     var grandChildA1 = new ProjectModel
-        //     {
-        //         Name = "GrandChildA1",
-        //         Path = "GrandChildA1.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     var grandChildB1 = new ProjectModel
-        //     {
-        //         Name = "GrandChildB1",
-        //         Path = "GrandChildB1.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     rootNode.UsedIn.Add(childA);
-        //     rootNode.UsedIn.Add(childB);
-        //     childA.UsedIn.Add(grandChildA1);
-        //     childB.UsedIn.Add(grandChildB1);
-        //
-        //     tree.WithRootNode(rootNode);
-        //
-        //     var visitedNodes = new List<string>();
-        //
-        //     // Act
-        //     tree.TraverseDfs(node => visitedNodes.Add(node.Name));
-        //
-        //     // Assert
-        //     visitedNodes.Should().HaveCount(5);
-        //     visitedNodes[0].Should().Be("Root");
-        //     visitedNodes[1].Should().Be("ChildA");
-        //     visitedNodes[2].Should().Be("GrandChildA1");
-        //     visitedNodes[3].Should().Be("ChildB");
-        //     visitedNodes[4].Should().Be("GrandChildB1");
-        // }
-        //
-        // [Fact(DisplayName = "When traversing a complex tree with cycles, each node should be visited exactly once")]
-        // public void TraverseDfs_ComplexTreeWithCycles_EachNodeVisitedOnce()
-        // {
-        //     // Arrange
-        //     var tree = Tree.Create();
-        //     var rootNode = new ProjectModel
-        //     {
-        //         Name = "Root",
-        //         Path = "Root.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     var childA = new ProjectModel
-        //     {
-        //         Name = "ChildA",
-        //         Path = "ChildA.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     var childB = new ProjectModel
-        //     {
-        //         Name = "ChildB",
-        //         Path = "ChildB.csproj",
-        //         Version = "1.0.0"
-        //     };
-        //
-        //     // Create a cycle
-        //     rootNode.UsedIn.Add(childA);
-        //     rootNode.UsedIn.Add(childB);
-        //     childA.UsedIn.Add(childB);
-        //     childB.UsedIn.Add(childA);
-        //
-        //     tree.WithRootNode(rootNode);
-        //
-        //     var visitedNodeNames = new List<string>();
-        //     var visitedNodePaths = new HashSet<string>();
-        //
-        //     // Act
-        //     tree.TraverseDfs(node =>
-        //     {
-        //         visitedNodeNames.Add(node.Name);
-        //         visitedNodePaths.Add(node.Path);
-        //     });
-        //
-        //     // Assert
-        //     // We should have 3 unique nodes (Root, ChildA, ChildB)
-        //     visitedNodePaths.Should().HaveCount(3);
-        //
-        //     // But the traversal might visit them multiple times due to cycles
-        //     // Note: The current implementation doesn't handle cycles, so this test will likely fail
-        //     // with a stack overflow. This test is included to highlight this limitation.
-        //     visitedNodeNames.Should().Contain(new[] { "Root", "ChildA", "ChildB" });
-        // }
+        [Fact(DisplayName =
+            "When traversing a tree inclduing a root and some children nodes which they have children nodes, Then all nodes should be visited in DFS order successfully")]
+        public void TraverseTreeWithMultiLevelNodesInDfsOrderSuccessfully()
+        {
+            var tree = Tree<ProjectModel>.New();
+
+            var rootNode = new Node<ProjectModel>(
+                new ProjectModel { Name = "Root", Path = "Root.csproj", Version = "1.0.0" }
+            );
+
+            var childANode = rootNode.AddChild(
+                new ProjectModel { Name = "ChildA", Path = "ChildA.csproj", Version = "1.0.0" }
+            );
+
+            childANode.AddChild(
+                new ProjectModel { Name = "GrandChildA1", Path = "GrandChildA1.csproj", Version = "1.0.0" }
+            );
+
+            var childBNode = rootNode.AddChild(
+                new ProjectModel { Name = "ChildB", Path = "ChildB.csproj", Version = "1.0.0" }
+            );
+
+            childBNode.AddChild(
+                new ProjectModel { Name = "GrandChildB1", Path = "GrandChildB1.csproj", Version = "1.0.0" }
+            );
+
+            tree.WithRootNode(rootNode);
+
+            var visitedNodes = new List<string>();
+
+            tree.TraverseDfs(node => visitedNodes.Add(node.Name));
+
+            visitedNodes.Should().HaveCount(5);
+            visitedNodes[0].Should().Be("Root");
+            visitedNodes[1].Should().Be("ChildA");
+            visitedNodes[2].Should().Be("GrandChildA1");
+            visitedNodes[3].Should().Be("ChildB");
+            visitedNodes[4].Should().Be("GrandChildB1");
+        }
     }
 }

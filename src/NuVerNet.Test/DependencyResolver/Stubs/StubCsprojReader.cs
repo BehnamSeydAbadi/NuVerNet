@@ -1,6 +1,6 @@
 ﻿using NuVerNet.DependencyResolver.CsprojReader;
 
-namespace NuVerNet.Test.Stubs;
+namespace NuVerNet.Test.DependencyResolver.Stubs;
 
 public class StubCsprojReader : CsprojReader
 {

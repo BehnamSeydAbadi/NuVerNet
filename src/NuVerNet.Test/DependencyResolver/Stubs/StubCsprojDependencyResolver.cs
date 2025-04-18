@@ -3,7 +3,7 @@ using NuVerNet.DependencyResolver.CsprojReader;
 using NuVerNet.DependencyResolver.SolutionReader;
 using NuVerNet.DependencyResolver.ViewModels;
 
-namespace NuVerNet.Test.Stubs;
+namespace NuVerNet.Test.DependencyResolver.Stubs;
 
 public class StubCsprojDependencyResolver : CsprojDependencyResolver
 {

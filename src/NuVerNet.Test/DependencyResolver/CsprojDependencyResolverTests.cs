@@ -1,10 +1,10 @@
 ﻿using FluentAssertions;
 using NuVerNet.DependencyResolver.ViewModels;
-using NuVerNet.Test.Stubs;
+using NuVerNet.Test.DependencyResolver.Stubs;
 
 // ReSharper disable InconsistentNaming
 
-namespace NuVerNet.Test;
+namespace NuVerNet.Test.DependencyResolver;
 
 public class CsprojDependencyResolverTests
 {

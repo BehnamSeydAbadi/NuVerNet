@@ -1,7 +1,6 @@
 using NuVerNet.DependencyResolver;
 using NuVerNet.DependencyResolver.CsprojReader;
 using NuVerNet.DependencyResolver.SolutionReader;
-using NuVerNet.DependencyResolver.ViewModels;
 
 namespace NuVerNet.Test.DependencyResolver.Stubs;
 
@@ -11,11 +10,11 @@ public class StubCsprojDependencyResolver : CsprojDependencyResolver
     private Csproj[] _csprojsOfSolution = [];
     private Dictionary<string, StubCsprojReader> _csprojReadersIndexedByCsprojPath = [];
 
-    private StubCsprojDependencyResolver()
+    private StubCsprojDependencyResolver() : base()
     {
     }
 
-    public static StubCsprojDependencyResolver New() => new();
+    public new static StubCsprojDependencyResolver New() => new();
 
     public StubCsprojDependencyResolver WithProjectModel(ProjectModel projectModel)
     {

@@ -5,7 +5,7 @@ namespace NuVerNet.DependencyResolver.CsprojReader;
 public class CsprojReader
 {
     private string _csprojPath;
-    private string _csprojContent;
+    private CsprojContent _csprojContent;
     private XDocument _csprojXdocument;
 
     protected CsprojReader()
@@ -17,16 +17,16 @@ public class CsprojReader
     public CsprojReader WithCsprojPath(string csprojPath)
     {
         _csprojPath = csprojPath;
-        _csprojContent = File.ReadAllText(csprojPath);
+        _csprojContent = new CsprojContent(File.ReadAllText(csprojPath));
         return this;
     }
 
     public virtual void Load()
     {
-        if (string.IsNullOrWhiteSpace(_csprojPath) && string.IsNullOrWhiteSpace(_csprojContent))
+        if (string.IsNullOrWhiteSpace(_csprojPath) && string.IsNullOrWhiteSpace(_csprojContent.Get()))
             throw new InvalidOperationException("Either csprojPath or csprojContent should be provided.");
 
-        _csprojXdocument = XDocument.Load(new StringReader(_csprojContent));
+        _csprojXdocument = XDocument.Load(new StringReader(_csprojContent.Get()));
     }
 
     public virtual bool HasProjectReference(string projectName)
@@ -46,6 +46,8 @@ public class CsprojReader
 
         return _csprojPath.Replace(".csproj", string.Empty).Split("\\").Last();
     }
+
+    public virtual CsprojContent GetContent() => _csprojContent;
 
 
     private ProjectReferenceElement[] GetProjectReferenceElements()

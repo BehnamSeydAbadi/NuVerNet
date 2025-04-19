@@ -1,10 +1,15 @@
 ﻿using NuVerNet.DependencyResolver.SolutionReader;
-using NuVerNet.DependencyResolver.ViewModels;
 
 namespace NuVerNet.DependencyResolver;
 
 public class CsprojDependencyResolver
 {
+    protected CsprojDependencyResolver()
+    {
+    }
+
+    public static CsprojDependencyResolver New() => new();
+
     public async Task<ProjectModel> GetDependentProjectsAsync(string csprojPath, string solutionPath)
     {
         var projectModel = GetProjectModel(csprojPath);
@@ -36,6 +41,7 @@ public class CsprojDependencyResolver
                 {
                     Name = csprojReader.GetProjectName(),
                     Path = csprojModel.Path,
+                    CsprojContent = csprojReader.GetContent(),
                     Version = csprojReader.GetProjectVersion()
                 };
 
@@ -60,6 +66,7 @@ public class CsprojDependencyResolver
         {
             Name = csprojReader.GetProjectName(),
             Path = csprojPath,
+            CsprojContent = csprojReader.GetContent(),
             Version = csprojReader.GetProjectVersion(),
         };
     }

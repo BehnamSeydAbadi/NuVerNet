@@ -15,8 +15,8 @@ namespace NuVerNet.Test.TreeTraversal
             {
                 Name = "Root",
                 Path = "Root.csproj",
-                CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                Version = "1.0.0"
+                CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                Version = SemVersion.Parse("1.0.0")
             }));
 
             var visitedNodes = new List<string>();
@@ -38,8 +38,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "Root",
                     Path = "Root.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -48,8 +48,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "ChildA",
                     Path = "ChildA.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -58,8 +58,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "ChildB",
                     Path = "ChildB.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -86,8 +86,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "Root",
                     Path = "Root.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -96,8 +96,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "ChildA",
                     Path = "ChildA.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -106,8 +106,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "GrandChildA1",
                     Path = "GrandChildA1.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -116,8 +116,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "ChildB",
                     Path = "ChildB.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 
@@ -126,8 +126,8 @@ namespace NuVerNet.Test.TreeTraversal
                 {
                     Name = "GrandChildB1",
                     Path = "GrandChildB1.csproj",
-                    CsprojContent = new CsprojContent("<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>"),
-                    Version = "1.0.0"
+                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                    Version = SemVersion.Parse("1.0.0")
                 }
             );
 

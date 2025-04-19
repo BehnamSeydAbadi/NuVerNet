@@ -40,8 +40,8 @@ public class CsprojDependencyResolverTests
         {
             Name = projectA_Name,
             Path = projectA_Path,
-            CsprojContent = new CsprojContent(projectA_Content),
-            Version = projectA_Version,
+            CsprojContent = projectA_Content,
+            Version = SemVersion.Parse(projectA_Version),
         });
 
         var projectModel = await dependency.GetDependentProjectsAsync(projectA_Path, solutionPath: string.Empty);
@@ -49,7 +49,7 @@ public class CsprojDependencyResolverTests
         projectModel.Name.Should().Be(projectA_Name);
         projectModel.Path.Should().Be(projectA_Path);
         projectModel.CsprojContent.Should().Be(projectA_Content);
-        projectModel.Version.Should().Be(projectA_Version);
+        projectModel.Version!.ToString().Should().Be(projectA_Version);
         projectModel.UsedIn.Should().BeEmpty();
     }
 
@@ -115,8 +115,8 @@ public class CsprojDependencyResolverTests
             {
                 Name = projectA_Name,
                 Path = projectA_Path,
-                CsprojContent = new CsprojContent(projectA_Content),
-                Version = projectA_Version,
+                CsprojContent = projectA_Content,
+                Version = SemVersion.Parse(projectA_Version),
             })
             .WithCsprojContentsOfSolution(
                 new StubCsprojDependencyResolver.Csproj(projectA_Path, projectA_Content),
@@ -142,13 +142,13 @@ public class CsprojDependencyResolverTests
         projectModel.Name.Should().Be(projectA_Name);
         projectModel.Path.Should().Be(projectA_Path);
         projectModel.CsprojContent.Should().Be(projectA_Content);
-        projectModel.Version.Should().Be(projectA_Version);
+        projectModel.Version!.ToString().Should().Be(projectA_Version);
         projectModel.UsedIn.Count.Should().Be(1);
 
         projectModel.UsedIn[0].Name.Should().Be(projectB_Name);
         projectModel.UsedIn[0].Path.Should().Be(projectB_Path);
         projectModel.UsedIn[0].CsprojContent.Should().Be(projectB_Content);
-        projectModel.UsedIn[0].Version.Should().Be(projectB_Version);
+        projectModel.UsedIn[0].Version!.ToString().Should().Be(projectB_Version);
         projectModel.UsedIn[0].UsedIn.Should().BeEmpty();
     }
 
@@ -243,8 +243,8 @@ public class CsprojDependencyResolverTests
             {
                 Name = projectA_Name,
                 Path = projectA_Path,
-                CsprojContent = new CsprojContent(projectA_Content),
-                Version = projectA_Version,
+                CsprojContent = projectA_Content,
+                Version = SemVersion.Parse(projectA_Version),
             })
             .WithCsprojContentsOfSolution(
                 new StubCsprojDependencyResolver.Csproj(projectA_Path, projectA_Content),
@@ -278,21 +278,21 @@ public class CsprojDependencyResolverTests
         projectA_projectModel.Name.Should().Be(projectA_Name);
         projectA_projectModel.Path.Should().Be(projectA_Path);
         projectA_projectModel.CsprojContent.Should().Be(projectA_Content);
-        projectA_projectModel.Version.Should().Be(projectA_Version);
+        projectA_projectModel.Version!.ToString().Should().Be(projectA_Version);
         projectA_projectModel.UsedIn.Count.Should().Be(1);
 
         var projectB_projectModel = projectA_projectModel.UsedIn[0];
         projectB_projectModel.Name.Should().Be(projectB_Name);
         projectB_projectModel.Path.Should().Be(projectB_Path);
         projectB_projectModel.CsprojContent.Should().Be(projectB_Content);
-        projectB_projectModel.Version.Should().Be(projectB_Version);
+        projectB_projectModel.Version!.ToString().Should().Be(projectB_Version);
         projectB_projectModel.UsedIn.Count.Should().Be(1);
 
         var projectC_projectModel = projectB_projectModel.UsedIn[0];
         projectC_projectModel.Name.Should().Be(projectC_Name);
         projectC_projectModel.Path.Should().Be(projectC_Path);
         projectC_projectModel.CsprojContent.Should().Be(projectC_Content);
-        projectC_projectModel.Version.Should().Be(projectC_Version);
+        projectC_projectModel.Version!.ToString().Should().Be(projectC_Version);
         projectC_projectModel.UsedIn.Should().BeEmpty();
     }
 }

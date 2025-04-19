@@ -5,7 +5,7 @@ namespace NuVerNet.DependencyResolver.CsprojReader;
 public class CsprojReader
 {
     private string _csprojPath;
-    private CsprojContent _csprojContent;
+    private string _csprojContent;
     private XDocument _csprojXdocument;
 
     protected CsprojReader()
@@ -17,16 +17,16 @@ public class CsprojReader
     public CsprojReader WithCsprojPath(string csprojPath)
     {
         _csprojPath = csprojPath;
-        _csprojContent = new CsprojContent(File.ReadAllText(csprojPath));
+        _csprojContent = File.ReadAllText(csprojPath);
         return this;
     }
 
     public virtual void Load()
     {
-        if (string.IsNullOrWhiteSpace(_csprojPath) && string.IsNullOrWhiteSpace(_csprojContent.Get()))
+        if (string.IsNullOrWhiteSpace(_csprojPath) && string.IsNullOrWhiteSpace(_csprojContent))
             throw new InvalidOperationException("Either csprojPath or csprojContent should be provided.");
 
-        _csprojXdocument = XDocument.Load(new StringReader(_csprojContent.Get()));
+        _csprojXdocument = XDocument.Load(new StringReader(_csprojContent));
     }
 
     public virtual bool HasProjectReference(string projectName)
@@ -36,8 +36,11 @@ public class CsprojReader
         return projectReferences.Any(pr => pr.GetProjectName() == projectName);
     }
 
-    public virtual string? GetProjectVersion()
-        => _csprojXdocument.Descendants("Version").FirstOrDefault()?.Value;
+    public virtual SemVersion? GetProjectVersion()
+    {
+        var version = _csprojXdocument.Descendants("Version").FirstOrDefault()?.Value;
+        return string.IsNullOrWhiteSpace(version) ? null : SemVersion.Parse(version);
+    }
 
     public virtual string GetProjectName()
     {
@@ -47,7 +50,7 @@ public class CsprojReader
         return _csprojPath.Replace(".csproj", string.Empty).Split("\\").Last();
     }
 
-    public virtual CsprojContent GetContent() => _csprojContent;
+    public virtual string GetContent() => _csprojContent;
 
 
     private ProjectReferenceElement[] GetProjectReferenceElements()

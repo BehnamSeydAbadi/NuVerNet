@@ -6,7 +6,7 @@ namespace NuVerNet;
 public class Orchestrator
 {
     private string _csprojPath;
-    private string _solutionPath;
+    protected string SolutionPath;
     private ProjectModel _projectModel;
     private Tree<ProjectModel> _tree;
 
@@ -24,7 +24,7 @@ public class Orchestrator
 
     public Orchestrator WithSolutionPath(string solutionPath)
     {
-        _solutionPath = solutionPath;
+        SolutionPath = solutionPath;
         return this;
     }
 
@@ -36,7 +36,26 @@ public class Orchestrator
 
     public void BumpVersions()
     {
-        _tree.TraverseDfs(pm => pm.CsprojContent.BumpVersion());
+        _tree.TraverseDfs(pm =>
+        {
+            if (pm.Version is not null)
+                pm.Version = pm.Version.IncreasePatch();
+        });
+    }
+
+    public void WriteBumpedVersionCsprojContents()
+    {
+        _tree.TraverseDfs(pm =>
+        {
+            var csprojPath = pm.Path;
+
+            if (Path.IsPathRooted(csprojPath) is false)
+            {
+                csprojPath = Path.GetFullPath(csprojPath, SolutionPath);
+            }
+
+            WriteCsprojContent(csprojPath, pm.CsprojContent);
+        });
     }
 
     public void PackProjectsIntoNugets()
@@ -52,7 +71,12 @@ public class Orchestrator
 
     protected virtual async Task<ProjectModel> GetProjectModelAsync()
     {
-        return await CsprojDependencyResolver.New().GetDependentProjectsAsync(_csprojPath, _solutionPath);
+        return await CsprojDependencyResolver.New().GetDependentProjectsAsync(_csprojPath, SolutionPath);
+    }
+
+    protected virtual void WriteCsprojContent(string csprojPath, string csprojContent)
+    {
+        File.WriteAllText(csprojPath, csprojContent);
     }
 
     private Node<ProjectModel> ToNode(ProjectModel projectModel)

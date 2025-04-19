@@ -56,7 +56,7 @@ public class StubCsprojReader : CsprojReader
 
     public override string GetProjectName() => ProjectName;
 
-    public override string? GetProjectVersion() => _projectVersion;
+    public override SemVersion? GetProjectVersion() => SemVersion.Parse(_projectVersion);
 
-    public override CsprojContent GetContent() => new(ProjectContent);
+    public override string GetContent() => ProjectContent;
 }

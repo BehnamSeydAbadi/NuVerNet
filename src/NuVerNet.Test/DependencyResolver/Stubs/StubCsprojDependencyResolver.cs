@@ -41,7 +41,7 @@ public class StubCsprojDependencyResolver : CsprojDependencyResolver
         await Task.CompletedTask;
         return _csprojsOfSolution.Any() is false
             ? []
-            : _csprojsOfSolution.Select(cm => new CsprojModel(cm.Path, cm.Content)).ToArray();
+            : _csprojsOfSolution.Select(cm => new CsprojModel(cm.Path, cm.Content, solutionPath)).ToArray();
     }
 
     protected override CsprojReader GetCsprojReader(string csprojPath)

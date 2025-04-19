@@ -36,7 +36,7 @@ public class SolutionReader
             try
             {
                 var content = await File.ReadAllTextAsync(path);
-                return new CsprojModel(path, content);
+                return new CsprojModel(path, content, _solutionPath);
             }
             finally
             {
@@ -46,18 +46,4 @@ public class SolutionReader
 
         return await Task.WhenAll(tasks);
     }
-
-
-    // public async Task<CsprojModel[]> GetCsprojsAsync()
-    // {
-    //     var csprojModels = new List<CsprojModel>();
-    //
-    //     foreach (var csprojPath in _csprojPaths)
-    //     {
-    //         var csprojContent = await File.ReadAllTextAsync(csprojPath);
-    //         csprojModels.Add(new CsprojModel(csprojPath, csprojContent));
-    //     }
-    //
-    //     return csprojModels.ToArray();
-    // }
 }

@@ -45,17 +45,7 @@ public class Orchestrator
 
     public void WriteBumpedVersionCsprojContents()
     {
-        _tree.TraverseDfs(pm =>
-        {
-            var csprojPath = pm.Path;
-
-            if (Path.IsPathRooted(csprojPath) is false)
-            {
-                csprojPath = Path.GetFullPath(csprojPath, SolutionPath);
-            }
-
-            WriteCsprojContent(csprojPath, pm.CsprojContent);
-        });
+        _tree.TraverseDfs(pm => WriteCsprojContent(pm.AbsolutePath, pm.CsprojContent));
     }
 
     public void PackProjectsIntoNugets()

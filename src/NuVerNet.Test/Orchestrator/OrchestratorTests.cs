@@ -14,6 +14,7 @@ public class OrchestratorTests
     {
         var projectA_Name = "ProjectA";
         var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
+        var projectA_AbsolutePath = @"C:\source\repos\ProjectA\src\ProjectA\ProjectA.csproj";
         var projectA_Version = "0.0.1";
         var projectA_BumpedVersion = "0.0.2";
         var projectA_Content =
@@ -40,6 +41,7 @@ public class OrchestratorTests
         {
             Name = projectA_Name,
             Path = projectA_Path,
+            AbsolutePath = projectA_AbsolutePath,
             Version = SemVersion.Parse(projectA_Version),
             CsprojContent = projectA_Content
         };
@@ -58,41 +60,24 @@ public class OrchestratorTests
     {
         var projectA_Name = "ProjectA";
         var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
-        // var projectA_Content =
-        //     $@"
-        //     <Project Sdk=""Microsoft.NET.Sdk.Worker"">
-        //
-        //         <PropertyGroup>
-        //             <TargetFramework>net7.0</TargetFramework>
-        //             <Nullable>enable</Nullable>
-        //             <ImplicitUsings>enable</ImplicitUsings>
-        //             <UserSecretsId>dotnet-WindowsService-0001F3E8-FC7E-4AB5-9664-D579AB860F6A</UserSecretsId>
-        //             <Version>0.0.2</Version>
-        //         </PropertyGroup>
-        //     
-        //         <ItemGroup>
-        //             <PackageReference Include=""Microsoft.Extensions.Hosting"" Version=""7.0.1""/>
-        //             <PackageReference Include=""Microsoft.Extensions.Hosting.WindowsServices"" Version=""7.0.1"" />
-        //             <PackageReference Include=""Microsoft.Extensions.Logging.EventLog"" Version=""8.0.0"" />
-        //         </ItemGroup>
-        //     </Project>
-        //     ";
+        var projectA_AbsolutePath = @"C:\source\repos\ProjectA\src\ProjectA\ProjectA.csproj";
 
         var projectModel = new ProjectModel
         {
             Name = projectA_Name,
             Path = projectA_Path,
+            AbsolutePath = projectA_AbsolutePath,
             Version = SemVersion.Parse("0.0.2"),
             CsprojContent = string.Empty
         };
 
         var orchestrator = StubOrchestrator.New().WithProjectModel(projectModel);
-        orchestrator.WithSolutionPathX(@"C:\source\repos\ProjectA\src\ProjectA.sln");
+        orchestrator.WithSolutionPath(@"C:\source\repos\ProjectA\src\ProjectA.sln");
 
 
         await orchestrator.LoadAsync();
         orchestrator.WriteBumpedVersionCsprojContents();
 
-        orchestrator.CsprojAbsolutePath.Should().Be(@"C:\source\repos\ProjectA\src\ProjectA\ProjectA.csproj");
+        orchestrator.CsprojAbsolutePath.Should().Be(projectA_AbsolutePath);
     }
 }

@@ -9,7 +9,7 @@ public class StubOrchestrator : NuVerNet.Orchestrator
 
     public new static StubOrchestrator New() => new();
 
-    public StubOrchestrator WithSolutionPathX(string solutionPath)
+    public new StubOrchestrator WithSolutionPath(string solutionPath)
     {
         SolutionPath = solutionPath;
         return this;

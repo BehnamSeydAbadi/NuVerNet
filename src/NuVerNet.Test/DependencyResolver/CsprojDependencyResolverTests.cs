@@ -40,11 +40,14 @@ public class CsprojDependencyResolverTests
         {
             Name = projectA_Name,
             Path = projectA_Path,
+            AbsolutePath = projectA_Path,
             CsprojContent = projectA_Content,
             Version = SemVersion.Parse(projectA_Version),
         });
 
-        var projectModel = await dependency.GetDependentProjectsAsync(projectA_Path, solutionPath: string.Empty);
+        var projectModel = await dependency.GetDependentProjectsAsync(
+            projectA_Path, solutionPath: @"D:\source\repos\NuVerNet\src\NuVerNet.sln"
+        );
 
         projectModel.Name.Should().Be(projectA_Name);
         projectModel.Path.Should().Be(projectA_Path);
@@ -115,6 +118,7 @@ public class CsprojDependencyResolverTests
             {
                 Name = projectA_Name,
                 Path = projectA_Path,
+                AbsolutePath = projectA_Path,
                 CsprojContent = projectA_Content,
                 Version = SemVersion.Parse(projectA_Version),
             })
@@ -137,7 +141,9 @@ public class CsprojDependencyResolverTests
             );
 
 
-        var projectModel = await dependency.GetDependentProjectsAsync(projectA_Path, solutionPath: string.Empty);
+        var projectModel = await dependency.GetDependentProjectsAsync(
+            projectA_Path, solutionPath: @"D:\source\repos\NuVerNet\src\NuVerNet.sln"
+        );
 
         projectModel.Name.Should().Be(projectA_Name);
         projectModel.Path.Should().Be(projectA_Path);
@@ -243,6 +249,7 @@ public class CsprojDependencyResolverTests
             {
                 Name = projectA_Name,
                 Path = projectA_Path,
+                AbsolutePath = projectA_Path,
                 CsprojContent = projectA_Content,
                 Version = SemVersion.Parse(projectA_Version),
             })
@@ -272,7 +279,7 @@ public class CsprojDependencyResolverTests
             );
 
         var projectA_projectModel = await dependency.GetDependentProjectsAsync(
-            projectA_Path, solutionPath: string.Empty
+            projectA_Path, solutionPath: @"D:\source\repos\NuVerNet\src\NuVerNet.sln"
         );
 
         projectA_projectModel.Name.Should().Be(projectA_Name);

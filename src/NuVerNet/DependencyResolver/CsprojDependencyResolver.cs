@@ -41,6 +41,7 @@ public class CsprojDependencyResolver
                 {
                     Name = csprojReader.GetProjectName(),
                     Path = csprojModel.Path,
+                    AbsolutePath = csprojModel.AbsolutePath,
                     CsprojContent = csprojReader.GetContent(),
                     Version = csprojReader.GetProjectVersion()
                 };
@@ -66,6 +67,7 @@ public class CsprojDependencyResolver
         {
             Name = csprojReader.GetProjectName(),
             Path = csprojPath,
+            AbsolutePath = csprojPath,
             CsprojContent = csprojReader.GetContent(),
             Version = csprojReader.GetProjectVersion(),
         };

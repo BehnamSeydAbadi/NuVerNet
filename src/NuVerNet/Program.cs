@@ -49,15 +49,27 @@ var bumpCommand = new Command("bump", "Bumps the version")
 bumpCommand.SetHandler(
     async (string csprojPath, string solutionPath, string outputPath, string nugetServerUrl, string level) =>
     {
-        Console.WriteLine($"📦 Bumping version of: {csprojPath}");
-        Console.WriteLine($"🔧 Bump level: {level}");
-
         var orchestrator = Orchestrator.New().WithCsprojPath(csprojPath).WithSolutionPath(solutionPath);
+
+        Console.WriteLine($"Loading all csprojs from \"{solutionPath}\"");
         await orchestrator.LoadAsync();
+        Console.WriteLine("Loaded successfully");
+
+        Console.WriteLine($"Bumping \"{level}\" level of versions of csprojs");
         orchestrator.BumpVersions();
+        Console.WriteLine("Bumped successfully");
+
+        Console.WriteLine($"Writing bumped version of csprojs");
         orchestrator.WriteBumpedVersionCsprojContents();
+        Console.WriteLine("Written successfully");
+
+        Console.WriteLine($"Packing projects into nuget and save them into \"{outputPath}\"");
         await orchestrator.PackProjectsIntoNugetsAsync(outputPath);
+        Console.WriteLine("Packed successfully");
+
+        Console.WriteLine($"Pushing nuget projects into \"{nugetServerUrl}\"");
         await orchestrator.PushProjectsToNugetServerAsync(outputPath, nugetServerUrl);
+        Console.WriteLine("Pushed successfully");
         
     }, csprojPathOption, solutionPathOption, outputPathOption, nugetServerUrlOption, levelOption
 );

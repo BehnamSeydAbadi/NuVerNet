@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using NuVerNet.DependencyResolver;
+using NuVerNet.DependencyResolver.CsprojReader;
 using NuVerNet.TreeTraversal;
 
 namespace NuVerNet;
@@ -40,44 +41,31 @@ public class Orchestrator
         _tree.TraverseDfs(pm =>
         {
             if (pm.Version is not null)
-                pm.Version = pm.Version.IncreasePatch();
+                pm.BumpVersion();
         });
     }
 
     public void WriteBumpedVersionCsprojContents()
     {
-        _tree.TraverseDfs(pm => WriteCsprojContent(pm.AbsolutePath, pm.CsprojContent));
+        _tree.TraverseDfs(pm =>
+        {
+            if (pm.Version is null) return;
+
+            var bumpedVersionCsprojContent = GetBumpVersionedCsprojContent(pm);
+            WriteCsprojContent(pm.AbsolutePath, bumpedVersionCsprojContent);
+        });
     }
 
     public async Task PackProjectsIntoNugetsAsync(string outputDirectory)
     {
-        await _tree.TraverseDfsAsync(async pm =>
-        {
-            var processStartInfo = new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                Arguments = $@"pack ""{pm.AbsolutePath}"" -o ""{outputDirectory}""",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-
-            using var process = Process.Start(processStartInfo)!;
-            await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
-
-            if (process.ExitCode != 0)
-            {
-                throw new Exception($"dotnet pack failed:\n{error}");
-            }
-        });
+        await _tree.TraverseDfsAsync(
+            async pm => await NugetPacker.New().PackProjectsIntoNugetsAsync(pm, outputDirectory)
+        );
     }
 
-    public void PushProjectsToNugetServer()
+    public async Task PushProjectsToNugetServerAsync(string outputDirectory, string nugetServerUrl, string? apiKey = null)
     {
-        throw new NotImplementedException();
+        await new NugetPusher().PushNugetAsync(outputDirectory, nugetServerUrl, apiKey);
     }
 
 
@@ -97,11 +85,18 @@ public class Orchestrator
 
         foreach (var usedInProjectModel in projectModel.UsedIn)
         {
-            node.AddChild(usedInProjectModel);
-
-            ToNode(usedInProjectModel);
+            var childNode = ToNode(usedInProjectModel);
+            node.AddChild(childNode);
         }
 
         return node;
+    }
+
+    private string GetBumpVersionedCsprojContent(ProjectModel projectModel)
+    {
+        var csprojReader = CsprojReader.New().WithCsprojContent(projectModel.CsprojContent);
+        csprojReader.Load();
+        csprojReader.SetVersion(projectModel.Version!.ToString());
+        return csprojReader.GetBumpedVersionCsprojContent()!;
     }
 }

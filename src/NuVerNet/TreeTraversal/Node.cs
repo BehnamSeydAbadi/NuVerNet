@@ -12,10 +12,5 @@ public class Node<T> where T : class
     public T Object { get; }
     public IReadOnlyList<Node<T>> Children => _children;
 
-    public Node<T> AddChild(T childObject)
-    {
-        var childNode = new Node<T>(childObject);
-        _children.Add(childNode);
-        return childNode;
-    }
+    public void AddChild(Node<T> child) => _children.Add(child);
 }

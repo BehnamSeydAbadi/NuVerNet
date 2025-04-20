@@ -10,9 +10,9 @@ public class CsprojDependencyResolver
 
     public static CsprojDependencyResolver New() => new();
 
-    public async Task<ProjectModel> GetDependentProjectsAsync(string csprojPath, string solutionPath)
+    public async Task<ProjectModel> GetDependentProjectsAsync(string csprojAbsolutePath, string solutionPath)
     {
-        var projectModel = GetProjectModel(csprojPath);
+        var projectModel = GetProjectModel(csprojAbsolutePath);
 
         var allCsprojModels = await GetCsprojContentsOfSolutionAsync(solutionPath);
 
@@ -33,19 +33,12 @@ public class CsprojDependencyResolver
 
         foreach (var csprojModel in allCsprojModels)
         {
-            var csprojReader = GetCsprojReader(csprojModel.Path);
+            var csprojReader = GetCsprojReader(csprojModel.AbsolutePath);
 
-            if (csprojReader.HasProjectReference(projectModel.Name))
+            var usedInProjectModel = csprojReader.GetProjectModel();
+
+            if (csprojReader.HasProjectReference(projectModel.Name) && visited.Contains(usedInProjectModel.Path) is false)
             {
-                var usedInProjectModel = new ProjectModel
-                {
-                    Name = csprojReader.GetProjectName(),
-                    Path = csprojModel.Path,
-                    AbsolutePath = csprojModel.AbsolutePath,
-                    CsprojContent = csprojReader.GetContent(),
-                    Version = csprojReader.GetProjectVersion()
-                };
-
                 projectModel.UsedIn.Add(usedInProjectModel);
 
                 FindDependentProjectsRecursively(usedInProjectModel, allCsprojModels, visited);
@@ -55,7 +48,9 @@ public class CsprojDependencyResolver
 
     protected virtual CsprojReader.CsprojReader GetCsprojReader(string csprojPath)
     {
-        return CsprojReader.CsprojReader.New().WithCsprojPath(csprojPath);
+        var csprojReader = CsprojReader.CsprojReader.New().WithCsprojPath(csprojPath);
+        csprojReader.Load();
+        return csprojReader;
     }
 
     protected virtual ProjectModel GetProjectModel(string csprojPath)
@@ -75,6 +70,8 @@ public class CsprojDependencyResolver
 
     protected virtual async Task<CsprojModel[]> GetCsprojContentsOfSolutionAsync(string solutionPath)
     {
-        return await SolutionReader.SolutionReader.New().WithSolutionPath(solutionPath).GetCsprojsAsync();
+        var solutionReader = SolutionReader.SolutionReader.New().WithSolutionPath(solutionPath);
+        solutionReader.Load();
+        return await solutionReader.GetCsprojsAsync();
     }
 }

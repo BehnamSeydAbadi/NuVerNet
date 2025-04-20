@@ -46,25 +46,29 @@ namespace NuVerNet.Test.TreeTraversal
             );
 
             rootNode.AddChild(
-                new ProjectModel
-                {
-                    Name = "ChildA",
-                    Path = "ChildA.csproj",
-                    AbsolutePath = string.Empty,
-                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
-                    Version = SemVersion.Parse("1.0.0")
-                }
+                new Node<ProjectModel>(
+                    new ProjectModel
+                    {
+                        Name = "ChildA",
+                        Path = "ChildA.csproj",
+                        AbsolutePath = string.Empty,
+                        CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                        Version = SemVersion.Parse("1.0.0")
+                    }
+                )
             );
 
             rootNode.AddChild(
-                new ProjectModel
-                {
-                    Name = "ChildB",
-                    Path = "ChildB.csproj",
-                    AbsolutePath = string.Empty,
-                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
-                    Version = SemVersion.Parse("1.0.0")
-                }
+                new Node<ProjectModel>(
+                    new ProjectModel
+                    {
+                        Name = "ChildB",
+                        Path = "ChildB.csproj",
+                        AbsolutePath = string.Empty,
+                        CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                        Version = SemVersion.Parse("1.0.0")
+                    }
+                )
             );
 
             tree.WithRootNode(rootNode);
@@ -96,7 +100,7 @@ namespace NuVerNet.Test.TreeTraversal
                 }
             );
 
-            var childANode = rootNode.AddChild(
+            var childANode = new Node<ProjectModel>(
                 new ProjectModel
                 {
                     Name = "ChildA",
@@ -106,19 +110,23 @@ namespace NuVerNet.Test.TreeTraversal
                     Version = SemVersion.Parse("1.0.0")
                 }
             );
+            rootNode.AddChild(childANode);
+
 
             childANode.AddChild(
-                new ProjectModel
-                {
-                    Name = "GrandChildA1",
-                    Path = "GrandChildA1.csproj",
-                    AbsolutePath = string.Empty,
-                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
-                    Version = SemVersion.Parse("1.0.0")
-                }
+                new Node<ProjectModel>(
+                    new ProjectModel
+                    {
+                        Name = "GrandChildA1",
+                        Path = "GrandChildA1.csproj",
+                        AbsolutePath = string.Empty,
+                        CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                        Version = SemVersion.Parse("1.0.0")
+                    }
+                )
             );
 
-            var childBNode = rootNode.AddChild(
+            var childBNode = new Node<ProjectModel>(
                 new ProjectModel
                 {
                     Name = "ChildB",
@@ -128,16 +136,19 @@ namespace NuVerNet.Test.TreeTraversal
                     Version = SemVersion.Parse("1.0.0")
                 }
             );
+            rootNode.AddChild(childBNode);
 
             childBNode.AddChild(
-                new ProjectModel
-                {
-                    Name = "GrandChildB1",
-                    Path = "GrandChildB1.csproj",
-                    AbsolutePath = string.Empty,
-                    CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
-                    Version = SemVersion.Parse("1.0.0")
-                }
+                new Node<ProjectModel>(
+                    new ProjectModel
+                    {
+                        Name = "GrandChildB1",
+                        Path = "GrandChildB1.csproj",
+                        AbsolutePath = string.Empty,
+                        CsprojContent = "<Project Sdk=\"\"Microsoft.NET.Sdk.Worker\"\"></Project>",
+                        Version = SemVersion.Parse("1.0.0")
+                    }
+                )
             );
 
             tree.WithRootNode(rootNode);

@@ -8,4 +8,12 @@ public class ProjectModel
     public required string CsprojContent { get; set; }
     public required SemVersion? Version { get; set; }
     public List<ProjectModel> UsedIn { get; set; } = [];
+
+    public void BumpVersion()
+    {
+        if (Version is null)
+            throw new InvalidOperationException("Version not found");
+
+        Version = Version.IncreasePatch();
+    }
 }

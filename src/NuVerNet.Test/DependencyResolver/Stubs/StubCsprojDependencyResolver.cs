@@ -30,7 +30,7 @@ public class StubCsprojDependencyResolver : CsprojDependencyResolver
 
     public StubCsprojDependencyResolver WithCsprojReaders(params StubCsprojReader[] csprojReaders)
     {
-        _csprojReadersIndexedByCsprojPath = csprojReaders.ToDictionary(cp => cp.ProjectPath);
+        _csprojReadersIndexedByCsprojPath = csprojReaders.ToDictionary(cp => cp.AbsoluteProjectPath);
         return this;
     }
 

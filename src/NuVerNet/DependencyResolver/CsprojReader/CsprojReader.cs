@@ -7,6 +7,7 @@ public class CsprojReader
     private string _csprojPath;
     private string _csprojContent;
     private XDocument _csprojXdocument;
+    private string? _bumpedVersionCsprojContent;
 
     protected CsprojReader()
     {
@@ -21,13 +22,20 @@ public class CsprojReader
         return this;
     }
 
+    public CsprojReader WithCsprojContent(string csprojContent)
+    {
+        _csprojContent = csprojContent;
+        return this;
+    }
+
     public virtual void Load()
     {
         if (string.IsNullOrWhiteSpace(_csprojPath) && string.IsNullOrWhiteSpace(_csprojContent))
             throw new InvalidOperationException("Either csprojPath or csprojContent should be provided.");
 
-        _csprojXdocument = XDocument.Load(new StringReader(_csprojContent));
+        _csprojXdocument = GetCsprojXdocument();
     }
+
 
     public virtual bool HasProjectReference(string projectName)
     {
@@ -38,8 +46,9 @@ public class CsprojReader
 
     public virtual SemVersion? GetProjectVersion()
     {
-        var version = _csprojXdocument.Descendants("Version").FirstOrDefault()?.Value;
-        return string.IsNullOrWhiteSpace(version) ? null : SemVersion.Parse(version);
+        var xElement = GetProjectVersionXElement(_csprojXdocument);
+
+        return xElement is null ? null : SemVersion.Parse(xElement.Value);
     }
 
     public virtual string GetProjectName()
@@ -49,16 +58,51 @@ public class CsprojReader
 
         return _csprojPath.Replace(".csproj", string.Empty).Split("\\").Last();
     }
+    
+    public void SetVersion(string version)
+    {
+        var versionXelement = GetProjectVersionXElement(_csprojXdocument);
+
+        if (versionXelement is null)
+            throw new InvalidOperationException("Version is missing in csproj content");
+
+        versionXelement.SetValue(version);
+        _bumpedVersionCsprojContent = versionXelement.Document!.ToString();
+    }
+
+    public ProjectModel GetProjectModel()
+    {
+        return new ProjectModel
+        {
+            Name = GetProjectName(),
+            Path = GetRelativePath(),
+            AbsolutePath = GetAbsolutePath(),
+            CsprojContent = GetContent(),
+            Version = GetProjectVersion()
+        };
+    }
+
+    public string? GetBumpedVersionCsprojContent() => _bumpedVersionCsprojContent;
 
     public virtual string GetContent() => _csprojContent;
 
+    
+    protected virtual string GetRelativePath() => _csprojPath;
+    protected virtual string GetAbsolutePath() => _csprojPath;
 
+    
     private ProjectReferenceElement[] GetProjectReferenceElements()
     {
-        var xElements = _csprojXdocument.Descendants("ProjectReference")?.ToArray() ?? [];
+        var xElements = _csprojXdocument.Descendants("ProjectReference")?.ToList() ?? [];
+        xElements.AddRange(_csprojXdocument.Descendants("PackageReference")?.ToList() ?? []);
 
         if (xElements.Any() is false) return [];
 
         return xElements.Select(xe => ProjectReferenceElement.New().WithXElement(xe)).ToArray();
     }
+
+    private XElement? GetProjectVersionXElement(XDocument xDocument)
+        => xDocument.Descendants("Version").FirstOrDefault();
+
+    private XDocument GetCsprojXdocument() => XDocument.Load(new StringReader(_csprojContent));
 }

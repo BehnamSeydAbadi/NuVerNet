@@ -3,7 +3,7 @@
 public class SolutionReader
 {
     private string _solutionPath;
-    private string[] _csprojPaths;
+    private string[] _csprojPaths = [];
 
     private SolutionReader()
     {
@@ -19,7 +19,9 @@ public class SolutionReader
 
     public void Load()
     {
-        _csprojPaths = Directory.GetFiles(_solutionPath, "*.csproj", new EnumerationOptions
+        var solutionDirectoryPath = Path.GetDirectoryName(_solutionPath)!;
+
+        _csprojPaths = Directory.GetFiles(solutionDirectoryPath, "*.csproj", new EnumerationOptions
         {
             RecurseSubdirectories = true
         });
@@ -27,23 +29,37 @@ public class SolutionReader
 
     public async Task<CsprojModel[]> GetCsprojsAsync()
     {
-        var semaphoreSlim = new SemaphoreSlim(10);
+        var csprojModels = new List<CsprojModel>();
 
-        var tasks = _csprojPaths.Select(async path =>
+        foreach (var csprojPath in _csprojPaths)
         {
-            await semaphoreSlim.WaitAsync();
+            var csprojContent = File.ReadAllText(csprojPath);
 
-            try
-            {
-                var content = await File.ReadAllTextAsync(path);
-                return new CsprojModel(path, content, _solutionPath);
-            }
-            finally
-            {
-                semaphoreSlim.Release();
-            }
-        });
+            csprojModels.Add(
+                new CsprojModel(csprojPath, csprojContent, _solutionPath)
+            );
+        }
 
-        return await Task.WhenAll(tasks);
+        await Task.CompletedTask;
+        return csprojModels.ToArray();
+
+
+        // var semaphoreSlim = new SemaphoreSlim(10);
+        // await Task.CompletedTask;
+        //
+        // return _csprojPaths.Select(path =>
+        // {
+        //     // await semaphoreSlim.WaitAsync();
+        //
+        //     // try
+        //     // {
+        //     var content = File.ReadAllText(path);
+        //     return new CsprojModel(path, content, _solutionPath);
+        //     // }
+        //     // finally
+        //     // {
+        //     //     semaphoreSlim.Release();
+        //     // }
+        // }).ToArray();
     }
 }

@@ -7,6 +7,7 @@ public class StubCsprojReader : CsprojReader
 {
     public string ProjectName { get; private set; }
     public string ProjectPath { get; private set; }
+    public string AbsoluteProjectPath { get; private set; }
     public string ProjectContent { get; private set; }
     private string _projectVersion;
     private HashSet<string> _projectReferenceNames = [];
@@ -23,11 +24,18 @@ public class StubCsprojReader : CsprojReader
         return this;
     }
 
-    public StubCsprojReader WithProjectPath(string projectPath)
+    public StubCsprojReader WithRelativeProjectPath(string relativeProjectPath)
     {
-        ProjectPath = projectPath;
+        ProjectPath = relativeProjectPath;
         return this;
     }
+
+    public StubCsprojReader WithAbsoluteProjectPath(string absoluteProjectPath)
+    {
+        AbsoluteProjectPath = absoluteProjectPath;
+        return this;
+    }
+
 
     public StubCsprojReader WithProjectContent(string projectContent)
     {
@@ -59,4 +67,8 @@ public class StubCsprojReader : CsprojReader
     public override SemVersion? GetProjectVersion() => SemVersion.Parse(_projectVersion);
 
     public override string GetContent() => ProjectContent;
+
+
+    protected override string GetRelativePath() => ProjectPath;
+    protected override string GetAbsolutePath() => AbsoluteProjectPath;
 }

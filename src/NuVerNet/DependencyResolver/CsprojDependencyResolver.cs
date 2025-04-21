@@ -10,11 +10,11 @@ public class CsprojDependencyResolver
 
     public static CsprojDependencyResolver New() => new();
 
-    public async Task<ProjectModel> GetDependentProjectsAsync(string csprojAbsolutePath, string solutionPath)
+    public ProjectModel GetDependentProjects(string csprojAbsolutePath, string solutionPath)
     {
         var projectModel = GetProjectModel(csprojAbsolutePath);
 
-        var allCsprojModels = await GetCsprojContentsOfSolutionAsync(solutionPath);
+        var allCsprojModels = GetCsprojContentsOfSolution(solutionPath);
 
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -68,10 +68,10 @@ public class CsprojDependencyResolver
         };
     }
 
-    protected virtual async Task<CsprojModel[]> GetCsprojContentsOfSolutionAsync(string solutionPath)
+    protected virtual CsprojModel[] GetCsprojContentsOfSolution(string solutionPath)
     {
         var solutionReader = SolutionReader.SolutionReader.New().WithSolutionPath(solutionPath);
         solutionReader.Load();
-        return await solutionReader.GetCsprojsAsync();
+        return solutionReader.GetCsprojs();
     }
 }

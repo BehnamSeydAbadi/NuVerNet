@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
+using NuVerNet.Nuget.Exceptions;
 
-namespace NuVerNet;
+namespace NuVerNet.Nuget;
 
 public class NugetPusher
 {
@@ -9,7 +10,7 @@ public class NugetPusher
         var nupkgFiles = Directory.GetFiles(outputDirectory, "*.nupkg");
 
         if (nupkgFiles.Length == 0)
-            throw new FileNotFoundException("No .nupkg file was found in the output directory.");
+            throw new NupkgFileNotFoundException();
 
         foreach (var nupkgPath in nupkgFiles)
         {
@@ -34,9 +35,7 @@ public class NugetPusher
             await process.WaitForExitAsync();
 
             if (process.ExitCode != 0)
-            {
-                throw new Exception($"Push failed:\n{error}");
-            }
+                throw new PushingFailedException(error);
         }
     }
 }

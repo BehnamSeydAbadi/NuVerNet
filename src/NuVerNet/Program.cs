@@ -1,4 +1,6 @@
 ﻿using System.CommandLine;
+using System.CommandLine.Builder;
+using System.CommandLine.Parsing;
 using NuVerNet;
 
 var rootCommand = new RootCommand("NuVerNet - Versioning Automation Tool");
@@ -51,39 +53,45 @@ bumpCommand.SetHandler(
     {
         var orchestrator = Orchestrator.New().WithCsprojPath(csprojPath).WithSolutionPath(solutionPath);
 
-        Console.WriteLine($"Loading all csprojs from \"{solutionPath}\"");
-        await orchestrator.LoadAsync();
-        Console.WriteLine("Loaded successfully");
+        ConsoleWrite($"Loading all csprojs from \"{solutionPath}\"");
+        orchestrator.Load();
+        ConsoleWrite("Loaded successfully", ConsoleColor.Green);
 
-        Console.WriteLine($"Bumping \"{level}\" level of versions of csprojs");
+        ConsoleWrite($"Bumping \"{level}\" level of versions of csprojs");
         orchestrator.BumpVersions();
-        Console.WriteLine("Bumped successfully");
+        ConsoleWrite("Bumped successfully", ConsoleColor.Green);
 
-        Console.WriteLine($"Writing bumped version of csprojs");
+        ConsoleWrite($"Writing bumped version of csprojs");
         orchestrator.WriteBumpedVersionCsprojContents();
-        Console.WriteLine("Written successfully");
+        ConsoleWrite("Written successfully", ConsoleColor.Green);
 
-        Console.WriteLine($"Packing projects into nuget and save them into \"{outputPath}\"");
+        ConsoleWrite($"Packing projects into nuget and save them into \"{outputPath}\"");
         await orchestrator.PackProjectsIntoNugetsAsync(outputPath);
-        Console.WriteLine("Packed successfully");
+        ConsoleWrite("Packed successfully", ConsoleColor.Green);
 
-        Console.WriteLine($"Pushing nuget projects into \"{nugetServerUrl}\"");
+        ConsoleWrite($"Pushing nuget projects into \"{nugetServerUrl}\"");
         await orchestrator.PushProjectsToNugetServerAsync(outputPath, nugetServerUrl);
-        Console.WriteLine("Pushed successfully");
-        
+        ConsoleWrite("Pushed successfully", ConsoleColor.Green);
     }, csprojPathOption, solutionPathOption, outputPathOption, nugetServerUrlOption, levelOption
 );
 
 rootCommand.AddCommand(bumpCommand);
 
+var builder = new CommandLineBuilder(rootCommand)
+    .UseDefaults()
+    .UseExceptionHandler((exception, context) =>
+    {
+        ConsoleWrite($"Error: {exception.Message}", ConsoleColor.Red);
+        context.ExitCode = 1;
+    });
+var parser = builder.Build();
 
-return await rootCommand.InvokeAsync(args);
-//
-// try
-// {
-//     await rootCommand.InvokeAsync(args);
-// }
-// catch (Win32Exception ex) when (ex.Message.Contains("dotnet-suggest"))
-// {
-//     // Ignore this specific issue
-// }
+return await parser.InvokeAsync(args);
+
+
+void ConsoleWrite(string message, ConsoleColor color = ConsoleColor.White)
+{
+    Console.ForegroundColor = color;
+    Console.WriteLine(message);
+    Console.ResetColor();
+}

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using NuVerNet.DependencyResolver;
 using NuVerNet.DependencyResolver.CsprojReader;
+using NuVerNet.Nuget;
 using NuVerNet.TreeTraversal;
 
 namespace NuVerNet;
@@ -30,9 +31,9 @@ public class Orchestrator
         return this;
     }
 
-    public async Task LoadAsync()
+    public void Load()
     {
-        _projectModel = await GetProjectModelAsync();
+        _projectModel = GetProjectModel();
         _tree = Tree<ProjectModel>.New().WithRootNode(ToNode(_projectModel));
     }
 
@@ -69,9 +70,9 @@ public class Orchestrator
     }
 
 
-    protected virtual async Task<ProjectModel> GetProjectModelAsync()
+    protected virtual ProjectModel GetProjectModel()
     {
-        return await CsprojDependencyResolver.New().GetDependentProjectsAsync(_csprojPath, SolutionPath);
+        return CsprojDependencyResolver.New().GetDependentProjects(_csprojPath, SolutionPath);
     }
 
     protected virtual void WriteCsprojContent(string csprojPath, string csprojContent)

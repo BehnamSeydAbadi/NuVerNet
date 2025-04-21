@@ -1,4 +1,6 @@
-﻿namespace NuVerNet.DependencyResolver;
+﻿using NuVerNet.DependencyResolver.Exceptions;
+
+namespace NuVerNet.DependencyResolver;
 
 public class ProjectModel
 {
@@ -12,7 +14,7 @@ public class ProjectModel
     public void BumpVersion()
     {
         if (Version is null)
-            throw new InvalidOperationException("Version not found");
+            throw new MissingVersionException();
 
         Version = Version.IncreasePatch();
     }

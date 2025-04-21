@@ -21,11 +21,7 @@ public class StubOrchestrator : NuVerNet.Orchestrator
         return this;
     }
 
-    protected override async Task<ProjectModel> GetProjectModelAsync()
-    {
-        await Task.CompletedTask;
-        return _projectModel;
-    }
+    protected override ProjectModel GetProjectModel() => _projectModel;
 
     protected override void WriteCsprojContent(string csprojPath, string csprojContent)
     {

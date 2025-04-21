@@ -1,4 +1,6 @@
 ﻿using System.Xml.Linq;
+using NuVerNet.DependencyResolver.CsprojReader.Exceptions;
+using NuVerNet.DependencyResolver.Exceptions;
 
 namespace NuVerNet.DependencyResolver.CsprojReader;
 
@@ -31,7 +33,7 @@ public class CsprojReader
     public virtual void Load()
     {
         if (string.IsNullOrWhiteSpace(_csprojPath) && string.IsNullOrWhiteSpace(_csprojContent))
-            throw new InvalidOperationException("Either csprojPath or csprojContent should be provided.");
+            throw new SourceNotFoundException();
 
         _csprojXdocument = GetCsprojXdocument();
     }
@@ -54,17 +56,17 @@ public class CsprojReader
     public virtual string GetProjectName()
     {
         if (string.IsNullOrWhiteSpace(_csprojPath))
-            throw new InvalidOperationException("Csproj path is empty");
+            throw new CsprojPathIsEmptyException();
 
         return _csprojPath.Replace(".csproj", string.Empty).Split("\\").Last();
     }
-    
+
     public void SetVersion(string version)
     {
         var versionXelement = GetProjectVersionXElement(_csprojXdocument);
 
         if (versionXelement is null)
-            throw new InvalidOperationException("Version is missing in csproj content");
+            throw new MissingVersionException();
 
         versionXelement.SetValue(version);
         _bumpedVersionCsprojContent = versionXelement.Document!.ToString();
@@ -86,11 +88,11 @@ public class CsprojReader
 
     public virtual string GetContent() => _csprojContent;
 
-    
+
     protected virtual string GetRelativePath() => _csprojPath;
     protected virtual string GetAbsolutePath() => _csprojPath;
 
-    
+
     private ProjectReferenceElement[] GetProjectReferenceElements()
     {
         var xElements = _csprojXdocument.Descendants("ProjectReference")?.ToList() ?? [];

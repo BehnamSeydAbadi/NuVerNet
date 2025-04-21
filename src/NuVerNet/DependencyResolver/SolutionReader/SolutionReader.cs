@@ -27,7 +27,7 @@ public class SolutionReader
         });
     }
 
-    public async Task<CsprojModel[]> GetCsprojsAsync()
+    public CsprojModel[] GetCsprojs()
     {
         var csprojModels = new List<CsprojModel>();
 
@@ -40,26 +40,6 @@ public class SolutionReader
             );
         }
 
-        await Task.CompletedTask;
         return csprojModels.ToArray();
-
-
-        // var semaphoreSlim = new SemaphoreSlim(10);
-        // await Task.CompletedTask;
-        //
-        // return _csprojPaths.Select(path =>
-        // {
-        //     // await semaphoreSlim.WaitAsync();
-        //
-        //     // try
-        //     // {
-        //     var content = File.ReadAllText(path);
-        //     return new CsprojModel(path, content, _solutionPath);
-        //     // }
-        //     // finally
-        //     // {
-        //     //     semaphoreSlim.Release();
-        //     // }
-        // }).ToArray();
     }
 }

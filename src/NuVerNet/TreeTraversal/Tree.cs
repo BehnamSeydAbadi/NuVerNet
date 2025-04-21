@@ -1,4 +1,6 @@
-﻿namespace NuVerNet.TreeTraversal;
+﻿using NuVerNet.TreeTraversal.Exceptions;
+
+namespace NuVerNet.TreeTraversal;
 
 public class Tree<T> where T : class
 {
@@ -16,7 +18,7 @@ public class Tree<T> where T : class
     public void TraverseDfs(Action<T> action)
     {
         if (_rootNode is null)
-            throw new InvalidOperationException("Root node is null");
+            throw new RootNodeNotFoundException();
 
         TraverseDfs(_rootNode, action);
     }
@@ -24,7 +26,7 @@ public class Tree<T> where T : class
     public async Task TraverseDfsAsync(Func<T, Task> action)
     {
         if (_rootNode is null)
-            throw new InvalidOperationException("Root node is null");
+            throw new RootNodeNotFoundException();
 
         await TraverseDfsAsync(_rootNode, action);
     }

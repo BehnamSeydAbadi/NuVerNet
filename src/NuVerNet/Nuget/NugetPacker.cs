@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
 using NuVerNet.DependencyResolver;
+using NuVerNet.Nuget.Exceptions;
 
-namespace NuVerNet;
+namespace NuVerNet.Nuget;
 
 public class NugetPacker
 {
@@ -29,8 +30,6 @@ public class NugetPacker
         await process.WaitForExitAsync();
 
         if (process.ExitCode != 0)
-        {
-            throw new Exception($"dotnet pack failed:\n{error}");
-        }
+            throw new PackingFailedException(error);
     }
 }

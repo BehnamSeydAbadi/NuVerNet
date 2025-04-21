@@ -36,9 +36,8 @@ public class StubCsprojDependencyResolver : CsprojDependencyResolver
 
     protected override ProjectModel GetProjectModel(string csprojPath) => _projectModel;
 
-    protected override async Task<CsprojModel[]> GetCsprojContentsOfSolutionAsync(string solutionPath)
+    protected override CsprojModel[] GetCsprojContentsOfSolution(string solutionPath)
     {
-        await Task.CompletedTask;
         return _csprojsOfSolution.Any() is false
             ? []
             : _csprojsOfSolution.Select(cm => new CsprojModel(cm.Path, cm.Content, solutionPath)).ToArray();

@@ -10,7 +10,7 @@ public class OrchestratorTests
 {
     [Fact(DisplayName =
         "There is a csproj content with version 0.0.1, When the version gets bumped, Then the version should be 0.0.2 successfully")]
-    public async Task BumpVersionSuccessfullyAsync()
+    public void BumpVersionSuccessfullyAsync()
     {
         var projectA_Name = "ProjectA";
         var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
@@ -48,7 +48,7 @@ public class OrchestratorTests
 
         var orchestrator = StubOrchestrator.New().WithProjectModel(projectModel);
 
-        await orchestrator.LoadAsync();
+        orchestrator.Load();
         orchestrator.BumpVersions();
 
         projectModel.Version.ToString().Should().Be(projectA_BumpedVersion);
@@ -56,7 +56,7 @@ public class OrchestratorTests
 
     [Fact(DisplayName =
         "There is a bumped version csproj content, When the csproj content gets written, Then the csproj content should be written successfully")]
-    public async Task WriteBumpedVersionCsprojContentsSuccessfullyAsync()
+    public void WriteBumpedVersionCsprojContentsSuccessfully()
     {
         var projectA_Name = "ProjectA";
         var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
@@ -80,7 +80,7 @@ public class OrchestratorTests
                 </ItemGroup>
             </Project>
             ";
-        
+
         var projectModel = new ProjectModel
         {
             Name = projectA_Name,
@@ -94,7 +94,7 @@ public class OrchestratorTests
         orchestrator.WithSolutionPath(@"C:\source\repos\ProjectA\src\ProjectA.sln");
 
 
-        await orchestrator.LoadAsync();
+        orchestrator.Load();
         orchestrator.WriteBumpedVersionCsprojContents();
 
         orchestrator.CsprojAbsolutePath.Should().Be(projectA_AbsolutePath);

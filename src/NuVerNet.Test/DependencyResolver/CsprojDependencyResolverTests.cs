@@ -10,7 +10,7 @@ public class CsprojDependencyResolverTests
 {
     [Fact(DisplayName =
         "There is a .NET projects, When dependency logic works, Then only the project it'self with no UsedIn projects should be returned successfully")]
-    public async Task DependencyLogicWorksOnOneProjectSuccessfully()
+    public void DependencyLogicWorksOnOneProjectSuccessfully()
     {
         var projectA_Name = "ProjectA";
         var projectA_Path = $"..\\ProjectA\\{projectA_Name}.csproj";
@@ -45,7 +45,7 @@ public class CsprojDependencyResolverTests
             Version = SemVersion.Parse(projectA_Version),
         });
 
-        var projectModel = await dependency.GetDependentProjectsAsync(
+        var projectModel = dependency.GetDependentProjects(
             projectA_Path, solutionPath: @"D:\source\repos\NuVerNet\src\NuVerNet.sln"
         );
 
@@ -58,7 +58,7 @@ public class CsprojDependencyResolverTests
 
     [Fact(DisplayName =
         "There are two .NET projects which one of them is dependent to another one, When dependency logic works, Then the dependent project should be returned successfully")]
-    public async Task DependencyLogicWorksOnTwoDependentProjectsSuccessfully()
+    public void DependencyLogicWorksOnTwoDependentProjectsSuccessfully()
     {
         var projectA_Name = "ProjectA";
         var projectA_RelativePath = $"..\\ProjectA\\{projectA_Name}.csproj";
@@ -145,7 +145,7 @@ public class CsprojDependencyResolverTests
             );
 
 
-        var projectModel = await dependency.GetDependentProjectsAsync(
+        var projectModel = dependency.GetDependentProjects(
             projectA_AbsolutePath, solutionPath: @"C:\source\repos\Project\Project.sln"
         );
 
@@ -166,7 +166,7 @@ public class CsprojDependencyResolverTests
 
     [Fact(DisplayName =
         "There are multiple .NET projects which are dependent to each other hierarchically, When dependency logic works, Then the dependent project should be returned successfully")]
-    public async Task DependencyLogicWorksOnThreeDependentProjectsSuccessfully()
+    public void DependencyLogicWorksOnThreeDependentProjectsSuccessfully()
     {
         var projectA_Name = "ProjectA";
         var projectA_RelativePath = $"..\\ProjectA\\{projectA_Name}.csproj";
@@ -290,7 +290,7 @@ public class CsprojDependencyResolverTests
                     .WithProjectReferences(projectB_Name)
             );
 
-        var projectA_projectModel = await dependency.GetDependentProjectsAsync(
+        var projectA_projectModel = dependency.GetDependentProjects(
             projectA_AbsolutePath, solutionPath: @"D:\source\repos\NuVerNet\src\NuVerNet.sln"
         );
 

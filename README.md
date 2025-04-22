@@ -39,7 +39,7 @@ You can install NuVerNet locally without relying on the NuGet server:
 The primary command in NuVerNet is `bump`, which handles the entire versioning and publishing workflow:
 
 ```bash
-nuver bump --csprojpath <path-to-csproj> \
+nuvernet bump --csprojpath <path-to-csproj> \
            --solutionpath <path-to-solution> \
            --outputpath <output-directory> \
            --nugetserverurl <nuget-server-url> \
@@ -65,7 +65,7 @@ nuver bump --csprojpath <path-to-csproj> \
 ### Bump the patch version and publish:
 
 ```bash
-nuver bump --csprojpath ./src/MyProject/MyProject.csproj \
+nuvernet bump --csprojpath ./src/MyProject/MyProject.csproj \
            --solutionpath ./MySolution.sln \
            --outputpath ./nuget-packages \
            --nugetserverurl https://api.nuget.org/v3/index.json
@@ -74,7 +74,7 @@ nuver bump --csprojpath ./src/MyProject/MyProject.csproj \
 ### Bump the minor version instead:
 
 ```bash
-nuver bump --csprojpath ./src/MyProject/MyProject.csproj \
+nuvernet bump --csprojpath ./src/MyProject/MyProject.csproj \
            --solutionpath ./MySolution.sln \
            --outputpath ./nuget-packages \
            --nugetserverurl https://api.nuget.org/v3/index.json \

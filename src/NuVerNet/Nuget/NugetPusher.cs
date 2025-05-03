@@ -14,6 +14,8 @@ public class NugetPusher
 
         foreach (var nupkgPath in nupkgFiles)
         {
+            ConsoleLog.Info($"Pushing {nupkgPath}...");
+
             var pushCommand = string.IsNullOrWhiteSpace(apiKey)
                 ? $@"nuget push ""{nupkgPath}"" --source ""{nugetServerUrl}"""
                 : $@"nuget push ""{nupkgPath}"" --source ""{nugetServerUrl}"" --api-key ""{apiKey}""";
@@ -29,13 +31,15 @@ public class NugetPusher
             };
 
             using var process = Process.Start(processStartInfo)!;
-            await process.StandardOutput.ReadToEndAsync();
+            var output = await process.StandardOutput.ReadToEndAsync();
             var error = await process.StandardError.ReadToEndAsync();
 
             await process.WaitForExitAsync();
 
             if (process.ExitCode != 0)
-                throw new PushingFailedException(error);
+                throw new PushingFailedException(string.IsNullOrWhiteSpace(error) is false ? error : output);
+
+            ConsoleLog.Success($"{nupkgPath} pushed successfully");
         }
     }
 }

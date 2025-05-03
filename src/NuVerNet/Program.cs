@@ -53,25 +53,25 @@ bumpCommand.SetHandler(
     {
         var orchestrator = Orchestrator.New().WithCsprojPath(csprojPath).WithSolutionPath(solutionPath);
 
-        ConsoleWrite($"Loading all csprojs from \"{solutionPath}\"");
+        ConsoleLog.Info($"Loading all csprojs from \"{solutionPath}\"");
         orchestrator.Load();
-        ConsoleWrite("Loaded successfully", ConsoleColor.Green);
+        ConsoleLog.Success("Loaded successfully");
 
-        ConsoleWrite($"Bumping \"{level}\" level of versions of csprojs");
+        ConsoleLog.Info($"Bumping \"{level}\" level of versions of csprojs");
         orchestrator.BumpVersions();
-        ConsoleWrite("Bumped successfully", ConsoleColor.Green);
+        ConsoleLog.Success("Bumped successfully");
 
-        ConsoleWrite($"Writing bumped version of csprojs");
+        ConsoleLog.Info($"Writing bumped version of csprojs");
         orchestrator.WriteBumpedVersionCsprojContents();
-        ConsoleWrite("Written successfully", ConsoleColor.Green);
+        ConsoleLog.Success("Written successfully");
 
-        ConsoleWrite($"Packing projects into nuget and save them into \"{outputPath}\"");
+        ConsoleLog.Info($"Packing projects into nuget and save them into \"{outputPath}\"");
         await orchestrator.PackProjectsIntoNugetsAsync(outputPath);
-        ConsoleWrite("Packed successfully", ConsoleColor.Green);
+        ConsoleLog.Success("Packed successfully");
 
-        ConsoleWrite($"Pushing nuget projects into \"{nugetServerUrl}\"");
+        ConsoleLog.Info($"Pushing nuget projects into \"{nugetServerUrl}\"");
         await orchestrator.PushProjectsToNugetServerAsync(outputPath, nugetServerUrl);
-        ConsoleWrite("Pushed successfully", ConsoleColor.Green);
+        ConsoleLog.Success("Pushed successfully");
     }, csprojPathOption, solutionPathOption, outputPathOption, nugetServerUrlOption, levelOption
 );
 
@@ -81,17 +81,9 @@ var builder = new CommandLineBuilder(rootCommand)
     .UseDefaults()
     .UseExceptionHandler((exception, context) =>
     {
-        ConsoleWrite($"Error: {exception.Message}", ConsoleColor.Red);
+        ConsoleLog.Error($"Error: {exception.Message}");
         context.ExitCode = 1;
     });
 var parser = builder.Build();
 
 return await parser.InvokeAsync(args);
-
-
-void ConsoleWrite(string message, ConsoleColor color = ConsoleColor.White)
-{
-    Console.ForegroundColor = color;
-    Console.WriteLine(message);
-    Console.ResetColor();
-}

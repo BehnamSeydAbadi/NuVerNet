@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using NuVerNet.DependencyResolver;
 using NuVerNet.Nuget.Exceptions;
 
@@ -14,6 +15,8 @@ public class NugetPacker
 
     public async Task PackProjectsIntoNugetsAsync(ProjectModel projectModel, string outputDirectory)
     {
+        ConsoleLog.Info($"Packing {projectModel.Name}...");
+
         var processStartInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
@@ -25,11 +28,15 @@ public class NugetPacker
         };
 
         using var process = Process.Start(processStartInfo)!;
-        await process.StandardOutput.ReadToEndAsync();
+        var output = await process.StandardOutput.ReadToEndAsync();
         var error = await process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
 
         if (process.ExitCode != 0)
-            throw new PackingFailedException(error);
+        {
+            throw new PackingFailedException(string.IsNullOrWhiteSpace(error) is false ? error : output);
+        }
+
+        ConsoleLog.Success($"{projectModel.Name} packed successfully");
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Xml.Linq;
 using NuVerNet.DependencyResolver.CsprojReader.Exceptions;
-using NuVerNet.DependencyResolver.Exceptions;
 
 namespace NuVerNet.DependencyResolver.CsprojReader;
 
@@ -8,8 +7,10 @@ public class CsprojReader
 {
     private string _csprojPath;
     private string _csprojContent;
+
     private XDocument _csprojXdocument;
-    private string? _bumpedVersionCsprojContent;
+
+    private readonly Dictionary<string, XElement> _packageReferencesXElementsIndexedByPackageName = [];
 
     protected CsprojReader()
     {
@@ -36,6 +37,11 @@ public class CsprojReader
             throw new SourceNotFoundException();
 
         _csprojXdocument = GetCsprojXdocument();
+
+        foreach (var xElement in _csprojXdocument.Descendants("PackageReference").ToArray())
+        {
+            _packageReferencesXElementsIndexedByPackageName.Add(xElement.Attribute("Include")!.Value, xElement);
+        }
     }
 
 
@@ -61,17 +67,6 @@ public class CsprojReader
         return _csprojPath.Replace(".csproj", string.Empty).Split("\\").Last();
     }
 
-    public void SetVersion(string version)
-    {
-        var versionXelement = GetProjectVersionXElement(_csprojXdocument);
-
-        if (versionXelement is null)
-            throw new MissingVersionException();
-
-        versionXelement.SetValue(version);
-        _bumpedVersionCsprojContent = versionXelement.Document!.ToString();
-    }
-
     public ProjectModel GetProjectModel()
     {
         return new ProjectModel
@@ -83,8 +78,6 @@ public class CsprojReader
             Version = GetProjectVersion()
         };
     }
-
-    public string? GetBumpedVersionCsprojContent() => _bumpedVersionCsprojContent;
 
     public virtual string GetContent() => _csprojContent;
 
@@ -107,4 +100,12 @@ public class CsprojReader
         => xDocument.Descendants("Version").FirstOrDefault();
 
     private XDocument GetCsprojXdocument() => XDocument.Load(new StringReader(_csprojContent));
+
+    public string[] GetPackageReferencesNames()
+    {
+        if (_packageReferencesXElementsIndexedByPackageName.Any() is false)
+            return [];
+
+        return _packageReferencesXElementsIndexedByPackageName.Select(kv => kv.Key).ToArray();
+    }
 }

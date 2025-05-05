@@ -1,4 +1,4 @@
-﻿using NuVerNet.DependencyResolver.Exceptions;
+﻿using NuVerNet.DependencyResolver.CsprojWriter.Exceptions;
 
 namespace NuVerNet.DependencyResolver;
 
@@ -14,7 +14,7 @@ public class ProjectModel
     public void BumpVersion()
     {
         if (Version is null)
-            throw new MissingVersionException();
+            throw new MissingVersionException(Name);
 
         Version = Version.IncreasePatch();
     }

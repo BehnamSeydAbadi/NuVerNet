@@ -23,7 +23,7 @@ public class StubOrchestrator : NuVerNet.Orchestrator
 
     protected override ProjectModel GetProjectModel() => _projectModel;
 
-    protected override void WriteCsprojContent(string csprojPath, string csprojContent)
+    protected void WriteCsprojContent(string csprojPath, string csprojContent)
     {
         CsprojAbsolutePath = csprojPath;
     }

@@ -39,40 +39,45 @@ var levelOption = new Option<string>(
     getDefaultValue: () => "patch"
 );
 
+var centralPackagePropsPathOption = new Option<string>(
+    name: "--centralpackagepropspath",
+    description: "The path to the Directory.Packages.props file",
+    getDefaultValue: () => string.Empty
+);
+
 var bumpCommand = new Command("bump", "Bumps the version")
 {
     csprojPathOption,
     solutionPathOption,
     outputPathOption,
     nugetServerUrlOption,
-    levelOption
+    levelOption,
+    centralPackagePropsPathOption
 };
 
 bumpCommand.SetHandler(
-    async (string csprojPath, string solutionPath, string outputPath, string nugetServerUrl, string level) =>
+    async (
+        string csprojPath, string solutionPath, string outputPath,
+        string nugetServerUrl, string level, string centralPackagePropsPath
+    ) =>
     {
-        var orchestrator = Orchestrator.New().WithCsprojPath(csprojPath).WithSolutionPath(solutionPath);
+        var orchestrator = Orchestrator.New()
+            .WithCsprojPath(csprojPath).WithSolutionPath(solutionPath)
+            .WithOutputPath(outputPath).WithNugetServerUrl(nugetServerUrl);
+
+        if (string.IsNullOrWhiteSpace(centralPackagePropsPath) is false)
+        {
+            orchestrator.WithCentralPackagePropsPath(centralPackagePropsPath);
+        }
 
         ConsoleLog.Info($"Loading all csprojs from \"{solutionPath}\"");
         orchestrator.Load();
         ConsoleLog.Success("Loaded successfully");
 
-        ConsoleLog.Info($"Bumping \"{level}\" level of versions of csprojs");
-        orchestrator.BumpVersions();
-        ConsoleLog.Success("Bumped successfully");
-
-        ConsoleLog.Info($"Writing bumped version of csprojs");
-        orchestrator.WriteBumpedVersionCsprojContents();
-        ConsoleLog.Success("Written successfully");
-
-        ConsoleLog.Info($"Packing projects into nuget and save them into \"{outputPath}\"");
-        await orchestrator.PackProjectsIntoNugetsAsync(outputPath);
-        ConsoleLog.Success("Packed successfully");
-
-        ConsoleLog.Info($"Pushing nuget projects into \"{nugetServerUrl}\"");
-        await orchestrator.PushProjectsToNugetServerAsync(outputPath, nugetServerUrl);
-        ConsoleLog.Success("Pushed successfully");
-    }, csprojPathOption, solutionPathOption, outputPathOption, nugetServerUrlOption, levelOption
+        ConsoleLog.Info($"Bumping, building, packing and pushing hierarchically is in progress...");
+        await orchestrator.BuildAndPublishNuGetPackagesAsync();
+        ConsoleLog.Success("Operations completed successfully");
+    }, csprojPathOption, solutionPathOption, outputPathOption, nugetServerUrlOption, levelOption, centralPackagePropsPathOption
 );
 
 rootCommand.AddCommand(bumpCommand);

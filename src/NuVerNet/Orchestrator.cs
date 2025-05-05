@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
-using NuVerNet.DependencyResolver;
+﻿using NuVerNet.DependencyResolver;
 using NuVerNet.DependencyResolver.CsprojReader;
+using NuVerNet.DependencyResolver.CsprojWriter;
 using NuVerNet.Nuget;
 using NuVerNet.TreeTraversal;
 
@@ -8,10 +8,18 @@ namespace NuVerNet;
 
 public class Orchestrator
 {
+    private readonly Dictionary<string, string> _bumpedVersionProjectsIndexedByName = new();
+
     private string _csprojPath;
-    protected string SolutionPath;
     private ProjectModel _projectModel;
     private Tree<ProjectModel> _tree;
+    private string _outputPath;
+    private string _nugetServerUrl;
+    private string? _centralPackagePropsPath;
+    private string? _apiKey;
+
+    protected string SolutionPath;
+
 
     protected Orchestrator()
     {
@@ -31,53 +39,75 @@ public class Orchestrator
         return this;
     }
 
+    public Orchestrator WithOutputPath(string outputPath)
+    {
+        _outputPath = outputPath;
+        return this;
+    }
+
+    public Orchestrator WithNugetServerUrl(string nugetServerUrl)
+    {
+        _nugetServerUrl = nugetServerUrl;
+        return this;
+    }
+
+    public Orchestrator WithApiKey(string apiKey)
+    {
+        _apiKey = apiKey;
+        return this;
+    }
+
+    public Orchestrator WithCentralPackagePropsPath(string centralPackagePropsPath)
+    {
+        _centralPackagePropsPath = centralPackagePropsPath;
+        return this;
+    }
+
     public void Load()
     {
         _projectModel = GetProjectModel();
         _tree = Tree<ProjectModel>.New().WithRootNode(ToNode(_projectModel));
     }
 
-    public void BumpVersions()
+
+    public async Task BuildAndPublishNuGetPackagesAsync()
     {
-        _tree.TraverseDfs(pm =>
+        CentralPackageManagement.CentralPackageManagement? centralPackageManagement = null;
+
+        if (string.IsNullOrWhiteSpace(_centralPackagePropsPath) is false)
         {
-            if (pm.Version is not null)
-                pm.BumpVersion();
-        });
-    }
+            centralPackageManagement = CentralPackageManagement.CentralPackageManagement.New();
+            centralPackageManagement.WithCentralPackagePropsPath(_centralPackagePropsPath);
+            centralPackageManagement.Load();
+        }
 
-    public void WriteBumpedVersionCsprojContents()
-    {
-        _tree.TraverseDfs(pm =>
-        {
-            if (pm.Version is null) return;
-
-            var bumpedVersionCsprojContent = GetBumpVersionedCsprojContent(pm);
-            WriteCsprojContent(pm.AbsolutePath, bumpedVersionCsprojContent);
-        });
-    }
-
-    public async Task PackProjectsIntoNugetsAsync(string outputDirectory)
-    {
         await _tree.TraverseDfsAsync(
-            async pm => await NugetPacker.New().PackProjectsIntoNugetsAsync(pm, outputDirectory)
-        );
-    }
+            async pm =>
+            {
+                if (pm.Version is not null)
+                {
+                    pm.BumpVersion();
+                    _bumpedVersionProjectsIndexedByName.Add(pm.Name, pm.Version.ToString());
+                }
 
-    public async Task PushProjectsToNugetServerAsync(string outputDirectory, string nugetServerUrl, string? apiKey = null)
-    {
-        await new NugetPusher().PushNugetAsync(outputDirectory, nugetServerUrl, apiKey);
+                WriteBumpedVersionCsprojContent(pm);
+
+                var nugetPacker = NugetPacker.New();
+                await nugetPacker.RestoreNugetPackagesAsync(pm);
+                await nugetPacker.RebuildProjectAsync(pm);
+                await nugetPacker.PackProjectAsync(pm, _outputPath);
+
+                await new NugetPusher().PushNugetAsync(_outputPath, _nugetServerUrl, _apiKey);
+
+                centralPackageManagement?.UpdatePackageVersion(pm.Name, pm.Version!.ToString());
+            }
+        );
     }
 
 
     protected virtual ProjectModel GetProjectModel()
     {
         return CsprojDependencyResolver.New().GetDependentProjects(_csprojPath, SolutionPath);
-    }
-
-    protected virtual void WriteCsprojContent(string csprojPath, string csprojContent)
-    {
-        File.WriteAllText(csprojPath, csprojContent);
     }
 
     private Node<ProjectModel> ToNode(ProjectModel projectModel)
@@ -93,11 +123,34 @@ public class Orchestrator
         return node;
     }
 
-    private string GetBumpVersionedCsprojContent(ProjectModel projectModel)
+    private void WriteBumpedVersionCsprojContent(ProjectModel projectModel)
     {
+        var csprojWriter = CsprojWriter.New()
+            .WithCsprojContent(projectModel.CsprojContent)
+            .WithProjectName(projectModel.Name);
+
+        if (projectModel.Version is not null)
+        {
+            csprojWriter.WithVersion(projectModel.Version!.ToString());
+        }
+
+        var packageReferenceVersions = new List<PackageReferenceVersion>();
+
         var csprojReader = CsprojReader.New().WithCsprojContent(projectModel.CsprojContent);
         csprojReader.Load();
-        csprojReader.SetVersion(projectModel.Version!.ToString());
-        return csprojReader.GetBumpedVersionCsprojContent()!;
+
+        foreach (var packageName in csprojReader.GetPackageReferencesNames())
+        {
+            _bumpedVersionProjectsIndexedByName.TryGetValue(packageName, out var version);
+
+            if (version is not null)
+            {
+                packageReferenceVersions.Add(new PackageReferenceVersion(packageName, version));
+            }
+        }
+
+        csprojWriter.WithPackageReferenceVersions(packageReferenceVersions.ToArray());
+
+        csprojWriter.Write(projectModel.AbsolutePath);
     }
 }

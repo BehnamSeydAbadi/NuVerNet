@@ -5,12 +5,16 @@ namespace NuVerNet.Nuget;
 
 public class NugetPusher
 {
-    public async Task PushNugetAsync(string outputDirectory, string nugetServerUrl, string? apiKey = null)
+    public async Task PushNugetAsync(
+        string projectName, string outputDirectory, string nugetServerUrl, string? apiKey = null
+    )
     {
-        var nupkgFiles = Directory.GetFiles(outputDirectory, "*.nupkg");
+        var nupkgFiles = Directory.GetFiles(outputDirectory, "*.nupkg")
+            .Where(file => file.Contains(projectName))
+            .ToArray();
 
         if (nupkgFiles.Length == 0)
-            throw new NupkgFileNotFoundException();
+            throw new NupkgFileNotFoundException(projectName);
 
         foreach (var nupkgPath in nupkgFiles)
         {

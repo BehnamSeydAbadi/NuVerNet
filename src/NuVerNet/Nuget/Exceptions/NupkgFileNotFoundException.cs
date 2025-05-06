@@ -2,4 +2,4 @@
 
 namespace NuVerNet.Nuget.Exceptions;
 
-public class NupkgFileNotFoundException() : AbstractException("No .nupkg file was found in the output directory.");
+public class NupkgFileNotFoundException(string projectName) : AbstractException($"No .nupkg file was found for {projectName} project in the output directory.");

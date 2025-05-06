@@ -84,22 +84,29 @@ public class Orchestrator
         await _tree.TraverseDfsAsync(
             async pm =>
             {
-                if (pm.Version is not null)
+                try
                 {
-                    pm.BumpVersion();
-                    _bumpedVersionProjectsIndexedByName.Add(pm.Name, pm.Version.ToString());
+                    if (pm.Version is not null)
+                    {
+                        pm.BumpVersion();
+                        _bumpedVersionProjectsIndexedByName.Add(pm.Name, pm.Version.ToString());
+                    }
+
+                    WriteBumpedVersionCsprojContent(pm);
+
+                    var nugetPacker = NugetPacker.New();
+                    await nugetPacker.RestoreNugetPackagesAsync(pm);
+                    await nugetPacker.RebuildProjectAsync(pm);
+                    await nugetPacker.PackProjectAsync(pm, _outputPath);
+
+                    await new NugetPusher().PushNugetAsync(pm.Name, _outputPath, _nugetServerUrl, _apiKey);
+
+                    centralPackageManagement?.UpdatePackageVersion(pm.Name, pm.Version!.ToString());
                 }
-
-                WriteBumpedVersionCsprojContent(pm);
-
-                var nugetPacker = NugetPacker.New();
-                await nugetPacker.RestoreNugetPackagesAsync(pm);
-                await nugetPacker.RebuildProjectAsync(pm);
-                await nugetPacker.PackProjectAsync(pm, _outputPath);
-
-                await new NugetPusher().PushNugetAsync(_outputPath, _nugetServerUrl, _apiKey);
-
-                centralPackageManagement?.UpdatePackageVersion(pm.Name, pm.Version!.ToString());
+                catch (Exception e)
+                {
+                    throw new SomethingWentWrongException($"{pm.Name} | {e.Message}");
+                }
             }
         );
     }

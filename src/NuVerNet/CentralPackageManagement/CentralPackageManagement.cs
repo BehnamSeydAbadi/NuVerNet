@@ -28,16 +28,16 @@ public class CentralPackageManagement
 
     public void UpdatePackageVersion(string packageName, string version)
     {
-        ConsoleLog.Info($"Updating \"{packageName}\" version to \"{version}\" in the central package props");
-
         _packageVersionXElements.TryGetValue(packageName, out var packageVersionXElement);
 
-        if (packageVersionXElement is not null)
-        {
-            packageVersionXElement.SetAttributeValue("Version", version);
-        }
+        if (packageVersionXElement is null)
+            return;
 
+        ConsoleLog.Info($"Updating \"{packageName}\" version to \"{version}\" in the central package props");
+
+        packageVersionXElement.SetAttributeValue("Version", version);
         File.WriteAllText(_centralPackagePropsPath, _xDocument.ToString());
+
         ConsoleLog.Success($"\"{packageName}\" version updated \"{version}\" successfully in the central package props");
     }
 }
